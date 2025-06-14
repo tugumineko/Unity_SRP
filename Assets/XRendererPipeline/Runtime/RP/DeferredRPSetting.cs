@@ -11,13 +11,14 @@ namespace SRPLearn{
     {
         public enum FrameBufferOutputDebug{
             Off,
-            Albedo,
+            Color,
             Normal,
             Position,
-            Mentalness,
-            Roughness,
+            Smoothness,
+            Breakup,
             VisbleLightCount,
-            Depth
+            Depth,
+            WorldSpaceUVGradient
         }
 
         public enum TileLightCullingAlgorithm{
@@ -33,7 +34,7 @@ namespace SRPLearn{
         [SerializeField]
         private FrameBufferOutputDebug _outputDebug = FrameBufferOutputDebug.Off;
 
-        public bool lightShadeByComputeShader = true;
+        public bool lightShadeByComputeShader = false;
 
 
         public TileLightCullingAlgorithm tileLightCullingAlgorithm = TileLightCullingAlgorithm.AABB;

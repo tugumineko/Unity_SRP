@@ -30,6 +30,11 @@ namespace SRPLearn{
             var filterSetting = new FilteringSettings(_isTransparent? RenderQueueRange.transparent:RenderQueueRange.opaque);
             //绘制物体
             context.DrawRenderers(cullingResults,ref drawSetting,ref filterSetting);
+            //draw skybox
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+            {
+                context.DrawSkybox(camera);
+            }            
         }
 
         private DrawingSettings CreateDrawSettings(Camera camera){

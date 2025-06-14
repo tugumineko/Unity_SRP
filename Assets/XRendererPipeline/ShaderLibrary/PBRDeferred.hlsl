@@ -75,7 +75,7 @@ void DecodeGBuffer(inout PBRShadeInput input,half4 gbuffer0,half4 gbuffer1,half4
     input.normal = normal;
     input.smooth = gbuffer2.a;
     #else
-    input.normal = UnpackNormal(gbuffer1.xyz);
+    input.normal = UnpackNormalOct(gbuffer1.xyz);
     input.smooth = gbuffer1.w;
     #endif
 }

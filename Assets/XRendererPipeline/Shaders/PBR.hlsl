@@ -92,7 +92,7 @@ half4 FragForward(Varyings input) : SV_Target
 
 //*******************GBuffer Begin*****************//
 
-GBufferVaryings VertGBuffer(Attributes input)
+GBufferVaryings PBRVertGBuffer(Attributes input)
 {
     GBufferVaryings output;
     output.positionCS = UnityObjectToClipPos(input.positionOS);
@@ -104,7 +104,7 @@ GBufferVaryings VertGBuffer(Attributes input)
 
 
 //在Fragmenet Shader里生成GBuffer
-GBufferOutput FragGBuffer(GBufferVaryings input){
+GBufferOutput PBRFragGBuffer(GBufferVaryings input){
     PBRShadeInput pbrShadeInput;
     pbrShadeInput.positionWS = 0;
     pbrShadeInput.albedo = UNITY_SAMPLE_TEX2D(_AlbedoMap,input.uv).rgb * _Color;

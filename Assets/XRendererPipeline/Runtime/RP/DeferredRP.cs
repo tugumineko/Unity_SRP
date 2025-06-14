@@ -1,5 +1,6 @@
 ﻿#define GBUFFER_NORMAL_ACCURATE
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,10 +15,12 @@ namespace SRPLearn{
         private RenderObjectPass _opaquePass = new RenderObjectPass(false,LightModeId,false);
        
         private ShadowCasterPass _shadowCastPass = new ShadowCasterPass();
-        private DeferredLightingPass _deferredLightingPass = new DeferredLightingPass();
+        //private DeferredLightingPass _deferredLightingPass = new DeferredLightingPass();
         private DeferredTileLightCulling _deferredLightingCulling;
         private DeferredLightConfigurator _deferredLightConfigurator = new DeferredLightConfigurator();
-
+        private WarpPass _warpPass = new WarpPass();
+        private FinalCompositingPass _finalPass = new FinalCompositingPass();
+        
         private List<RenderTexture> _GBuffers = new List<RenderTexture>();
         private RenderTargetIdentifier[] _GBufferRTIs;
         private int[] _GBufferNameIDs = {
@@ -32,13 +35,17 @@ namespace SRPLearn{
             RenderTextureFormat.ARGB32,
             RenderTextureFormat.ARGB32
         };
-
-        private RenderTexture _colorTexture;
+        
         private RenderTexture _depthTexture;
-
+        private RenderTexture _shadowTexture;
+        private RenderTexture _softBlurTexture;
+        private RenderTexture _heavyBlurTexture;
+        private RenderTexture _warpTexture;
+        
+        private BlurPass _blurPass = new BlurPass();
         private BlitPass _blitPass = new BlitPass();
         private FrameBufferOutputDebug? _currentOutputDebug;
-
+        
         public DeferredRP(XRendererPipelineAsset setting):base(setting){
             _deferredLightingCulling = new DeferredTileLightCulling(setting.builtinAssets.deferredLightingCullingCS);
             if(setting.deferredRPSetting.accurateNormals){
@@ -47,8 +54,7 @@ namespace SRPLearn{
                 _GBufferFormats[1] = RenderTextureFormat.ARGB32;
             }
         }
-
-
+        
         private void ConfigShaderPropertiesPerCamera(ScriptableRenderContext context,Camera camera){
             _commandbuffer.Clear();
             CameraUtil.ConfigShaderProperties(_commandbuffer,camera);
@@ -56,38 +62,115 @@ namespace SRPLearn{
             context.ExecuteCommandBuffer(_commandbuffer);
         }
 
-        private RenderTargetIdentifier AcquireColorTextureIfNot(ScriptableRenderContext context, Camera camera,bool enableRandomWrite=false){
-
-            if(_colorTexture){
-                if(_colorTexture.width != camera.pixelWidth || 
-                _colorTexture.height != camera.pixelHeight||
-                _colorTexture.enableRandomWrite != enableRandomWrite){
-                    this.ReleaseColorTexture();
+        private void AcquireARGB32TextureIfNot(ScriptableRenderContext context, Camera camera,
+            int textureNameId, ref RenderTexture texture, bool enableRandomWrite = false)
+        {
+            if (texture)
+            {
+                if (texture.width != camera.pixelWidth || texture.height != camera.pixelHeight ||
+                    texture.enableRandomWrite != enableRandomWrite)
+                {
+                    ReleaseARGB32Texture(ref texture);
                 }
             }
-
-            if(_colorTexture == null){
+            
+            if (texture == null)
+            {
                 RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight);
                 descriptor.depthBufferBits = 0;
                 descriptor.sRGB = true;
                 descriptor.colorFormat = RenderTextureFormat.ARGB32;
                 descriptor.enableRandomWrite = enableRandomWrite;
-                _colorTexture = RenderTexture.GetTemporary(descriptor);
-                _colorTexture.filterMode = FilterMode.Bilinear;
-                _colorTexture.Create();
+                texture = RenderTexture.GetTemporary(descriptor);
+                texture.Create();
                 _commandbuffer.Clear();
-                _commandbuffer.SetGlobalTexture(ShaderConstants.CameraColorTexture,_colorTexture);
+                _commandbuffer.SetGlobalTexture(textureNameId, texture);
                 context.ExecuteCommandBuffer(_commandbuffer);
             }
-            return _colorTexture;
+            
         }
 
-        private void ReleaseColorTexture(){
-            if(_colorTexture){
-                RenderTexture.ReleaseTemporary(_colorTexture);
-                _colorTexture = null;
+        private void ReleaseARGB32Texture(ref RenderTexture texture)
+        {
+            if (texture)
+            {
+                RenderTexture.ReleaseTemporary(texture);
+                texture = null;
             }
         }
+
+        private void AcquireWarpTextureIfNot(ScriptableRenderContext context, Camera camera)
+        {
+            if (_warpTexture)
+            {
+                if (_warpTexture.width != camera.pixelWidth || _warpTexture.height != camera.pixelHeight)
+                {
+                    ReleaseWarpTexture();
+                }
+            }
+
+            if (_warpTexture == null)
+            {
+                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight);
+                descriptor.depthBufferBits = 32;
+                descriptor.sRGB = false;
+                descriptor.colorFormat = RenderTextureFormat.RG16;
+                descriptor.enableRandomWrite = false;
+                _warpTexture = RenderTexture.GetTemporary(descriptor);
+                _warpTexture.Create();
+                _commandbuffer.Clear();
+                _commandbuffer.SetGlobalTexture(ShaderConstants.ScreenWarpTexture, _warpTexture);
+                context.ExecuteCommandBuffer(_commandbuffer);
+            }
+            
+        }
+
+        private void ReleaseWarpTexture()
+        {
+            if (_warpTexture)
+            {
+                RenderTexture.ReleaseTemporary(_warpTexture);
+                _warpTexture = null;
+            }
+        }
+        
+        private RenderTargetIdentifier AcquireShadowTextureIfNot(ScriptableRenderContext context, Camera camera,
+            bool enableRandomWrite = false)
+        {
+            if (_shadowTexture)
+            {
+                if (_shadowTexture.width != camera.pixelWidth || _shadowTexture.height != camera.pixelHeight ||
+                    _shadowTexture.enableRandomWrite != enableRandomWrite)
+                {
+                    ReleaseShadowTexture();
+                }
+            }
+
+            if (_shadowTexture == null)
+            {
+                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight);
+                descriptor.depthBufferBits = 0;
+                descriptor.sRGB = true;
+                descriptor.colorFormat = RenderTextureFormat.ARGB32;
+                descriptor.enableRandomWrite = enableRandomWrite;
+                _shadowTexture = RenderTexture.GetTemporary(descriptor);
+                _shadowTexture.Create();
+                _commandbuffer.Clear();
+                _commandbuffer.SetGlobalTexture(ShaderConstants.AOSAShadowTexture, _shadowTexture);
+                context.ExecuteCommandBuffer(_commandbuffer);
+            }
+            return _shadowTexture;
+        }
+        
+        private void ReleaseShadowTexture()
+        {
+            if (_shadowTexture)
+            {
+                RenderTexture.ReleaseTemporary(_shadowTexture);
+                _shadowTexture = null;
+            }
+        }
+        
         protected override void ConfigShaderPropertiesPipeline(ScriptableRenderContext context)
         {
             base.ConfigShaderPropertiesPipeline(context);
@@ -145,29 +228,51 @@ namespace SRPLearn{
             //设置MRT
             var cameraDesc = Utils.GetCameraRenderDescription(camera,_setting);
             this.ConfigMRT(context,ref cameraDesc);
-
+            
             //渲染非透明物体
             _opaquePass.Execute(context,camera,ref cullingResults);
 
-            var lightShadeByComputeShader = _setting.deferredRPSetting.lightShadeByComputeShader; //是否直接使用compute shader进行光照着色
-            var isFXAAOn = _setting.antiAliasSetting.isFXAAOn;
-            //如果使用CS着色、或者开启FXAA，那么需要自己申请一张RT
-            if(lightShadeByComputeShader){
-                this.AcquireColorTextureIfNot(context,camera,true);
-            }else if(isFXAAOn){
-                this.AcquireColorTextureIfNot(context,camera,false);
-            }else{
-                this.ReleaseColorTexture();
-            }
-
+            //shadowTexture的计算在computer shader中完成
+            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.AOSAShadowTexture,ref _shadowTexture,true);
+            
             var deferredTileLightCullingParams = new DeferredTileLightCulling.DeferredTileLightCullingParams(){
                 cameraRenderDescription = cameraDesc,
-                renderTargetIdentifier = _colorTexture,
-                lightShadeByComputeShader = lightShadeByComputeShader
+                renderTargetIdentifier = _shadowTexture,
+                lightShadeByComputeShader = true
             };
             _deferredLightingCulling.Execute(context,ref deferredTileLightCullingParams);
 
-            if(lightShadeByComputeShader){
+            AOSASetting  setting = _setting.aosaSetting;
+
+            //PresentTextureToScreen(context, _shadowTexture);
+            //return;
+            
+            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.SoftBlurTexture,ref _softBlurTexture);
+            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.HeavyBlurTexture,ref _heavyBlurTexture);
+            
+            _blurPass.Config(_shadowTexture,_softBlurTexture,_heavyBlurTexture,ref setting);
+            _blurPass.Execute(context,camera);
+            
+            //PresentTextureToScreen(context, _softBlurTexture);
+            //PresentTextureToScreen(context, _heavyBlurTexture);
+            //return; 
+
+            AcquireWarpTextureIfNot(context,camera);
+            
+            _warpPass.Config(_warpTexture);
+            _warpPass.Execute(context, ref cullingResults,camera,ref setting);
+            
+
+            if (setting.debugmode != 0)
+            {
+                AOSADebug(context,(int)setting.debugmode);
+                return;
+            }
+            
+            _finalPass.Execute(context, camera, ref setting);
+            
+            /*
+             if(lightShadeByComputeShader){
                 //如果光照是从CS计算的，需要一个Blit操作将图形从RT拷贝到设备屏幕
                 _blitPass.Config(_colorTexture,BuiltinRenderTextureType.CameraTarget);
                 _blitPass.Execute(context);
@@ -194,6 +299,8 @@ namespace SRPLearn{
                     _blitPass.Execute(context);
                 }
             }
+            */
+            
             #if UNITY_EDITOR
             if(camera.cameraType == CameraType.SceneView && UnityEditor.Handles.ShouldRenderGizmos()){
                 context.DrawGizmos(camera,GizmoSubset.PostImageEffects);
@@ -237,12 +344,7 @@ namespace SRPLearn{
                 context.ExecuteCommandBuffer(_commandbuffer);
             }
         }
-        private void ReleaseDepthTexture(){
-            if(_depthTexture){
-                 RenderTexture.ReleaseTemporary(_depthTexture);
-                _depthTexture = null;
-            }
-        }
+
         private void AcquireDepthTextureIfNot(ScriptableRenderContext context, Camera camera){
             if(_depthTexture){
                 if(_depthTexture.width != camera.pixelWidth || _depthTexture.height != camera.pixelHeight){
@@ -259,6 +361,13 @@ namespace SRPLearn{
             }
         }
 
+        private void ReleaseDepthTexture(){
+            if(_depthTexture){
+                RenderTexture.ReleaseTemporary(_depthTexture);
+                _depthTexture = null;
+            }
+        }
+        
         private void ConfigMRT(ScriptableRenderContext context,ref CameraRenderDescription cameraRenderDescription){
             this.AcquireGBuffersIfNot(context,cameraRenderDescription.camera);
             this.AcquireDepthTextureIfNot(context,cameraRenderDescription.camera);
@@ -278,9 +387,12 @@ namespace SRPLearn{
             base.Dispose(disposing);
             _deferredLightConfigurator.Dispose();
             _deferredLightingCulling.Dispose();
-            this.ReleaseColorTexture();
             this.ReleaseGBuffers();
             this.ReleaseDepthTexture();
+            this.ReleaseARGB32Texture(ref _shadowTexture);
+            this.ReleaseARGB32Texture(ref _softBlurTexture);
+            this.ReleaseARGB32Texture(ref _heavyBlurTexture);
+            this.ReleaseWarpTexture();
         }
 
 
@@ -291,8 +403,12 @@ namespace SRPLearn{
             public static readonly int GBuffer2 = Shader.PropertyToID("_GBuffer2");
             public static readonly int GBuffer3 = Shader.PropertyToID("_GBuffer3");
 
-            public static readonly int CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
-
+            //public static readonly int CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
+            public static readonly int AOSAShadowTexture = Shader.PropertyToID("_AOSAShadowTexture");
+            public static readonly int SoftBlurTexture = Shader.PropertyToID("_SoftBlurTexture");
+            public static readonly int HeavyBlurTexture = Shader.PropertyToID("_HeavyBlurTexture");
+            public static readonly int ScreenWarpTexture = Shader.PropertyToID("_ScreenWarpTexture");
+            
             public static readonly int CameraDepthTexture = Shader.PropertyToID("_XDepthTexture");
             public static readonly int DeferredDebugMode = Shader.PropertyToID("_DeferredDebugMode");
 
@@ -305,6 +421,12 @@ namespace SRPLearn{
             }
         }
 
+        private void PresentTextureToScreen(ScriptableRenderContext context, RenderTexture renderTexture)
+        {
+            _blitPass.Config(renderTexture,BuiltinRenderTextureType.CameraTarget);
+            _blitPass.Execute(context);
+        }
+        
         public static class ShaderKeywords
         {
 
@@ -314,6 +436,41 @@ namespace SRPLearn{
             public const string deferredLightCullingMode_SideFaces = "DEFERRED_LIGHT_CULLING_SIDES";
             public const string deferredLightCullingMode_AABB = "DEFERRED_LIGHT_CULLING_AABB";
             public const string GBufferAccurateNormals = "GBUFFER_ACCURATE_NORMAL";
+            
+        }
+
+        private void AOSADebug(ScriptableRenderContext context, int debugMode)
+        {
+            switch (debugMode)
+            {
+                case 1:
+                    PresentTextureToScreen(context, _GBuffers[0]); 
+                    break;
+                case 2:
+                    PresentTextureToScreen(context, _GBuffers[1]);
+                    break;
+                case 3:
+                    PresentTextureToScreen(context, _GBuffers[2]);
+                    break;
+                case 4: 
+                    PresentTextureToScreen(context, _GBuffers[3]);
+                    break;
+                case 5:
+                    PresentTextureToScreen(context, _shadowTexture);
+                    break;
+                case 6:
+                    PresentTextureToScreen(context, _softBlurTexture);
+                    break;
+                case 7:
+                    PresentTextureToScreen(context, _heavyBlurTexture);
+                    break;
+                case 8:
+                    PresentTextureToScreen(context, _warpTexture);
+                    break;
+                case 9:
+                    PresentTextureToScreen(context, _depthTexture);
+                    break;
+            }
         }
     }
 }

@@ -21,6 +21,10 @@ float4x4 _CameraMatrixV_Unity;
 
 #define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
 
+float4x4 glstate_matrix_projection;
+
+#define unity_MatrixP glstate_matrix_projection
+
 ///UnityPerDraw是Unity引起内置约定好的一个CBUFFER,里面的变量名都是约定好的，不能修改
 CBUFFER_START(UnityPerDraw)
 float4x4 unity_ObjectToWorld;

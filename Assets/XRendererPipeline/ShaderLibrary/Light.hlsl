@@ -61,7 +61,25 @@ ShadeLightDesc GetOtherLightShadeDesc(int index,float3 positionWS){
     return GetPointLightShadeDesc(light.positionRange,light.color.rgb,positionWS);
 }
 
+float IncomingLight(float3 normal, float3 lightDirection, float attenuation)
+{
+    float NoL = saturate(dot(normal,lightDirection) * 0.5 + 0.5);
+    return NoL * step(0.5, attenuation);
+}
 
+float SpecularHighLight(float3 viewDirection, float3 normal, float smoothness, float3 lightDirection, float attenuation)
+{
+    float3 halfVector = normalize(lightDirection + viewDirection);
+    float NoH = saturate(dot(normal,halfVector));
+    float specularIntensity = pow(NoH, 1.0 / max(0.001,smoothness * smoothness)) * step(0.001,smoothness);
+    return step(0.5, attenuation * specularIntensity);
+}
+
+void GetLighting(float3 viewDirection, float3 normal, float smoothness, float3 lightDirection, float attenuation, inout float shadow, inout float specular)
+{
+    shadow = IncomingLight(normal, lightDirection, attenuation);
+    specular = SpecularHighLight(viewDirection, normal, smoothness, lightDirection, attenuation);
+}
 
 
 //计算所有点光源的BlinnPhong光照

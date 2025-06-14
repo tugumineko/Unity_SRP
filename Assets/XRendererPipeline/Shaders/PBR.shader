@@ -104,8 +104,8 @@
 
             #pragma shader_feature GBUFFER_ACCURATE_NORMAL
         
-            #pragma vertex VertGBuffer
-            #pragma fragment FragGBuffer
+            #pragma vertex PBRVertGBuffer
+            #pragma fragment PBRFragGBuffer
 
             ENDHLSL
         }

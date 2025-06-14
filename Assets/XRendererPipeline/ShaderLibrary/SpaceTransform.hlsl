@@ -14,7 +14,7 @@ float3 TransformObjectToWorld(float3 positionOS){
     return positionWS.xyz;
 }
 
-float TransformObjectToWorldVector(float3 vectorOS){
+float3 TransformObjectToWorldVector(float3 vectorOS){
     float4 vectorWS = mul(unity_ObjectToWorld,float4(vectorOS,0));
     return vectorWS.xyz;
 }
@@ -36,6 +36,10 @@ float3 TransformWorldToView(float3 positionWS){
     return mul(_CameraMatrixV,float4(positionWS,1)).xyz;
 }
 
+float3 TransformWorldToViewVector(float3 vectorWS)
+{
+    return mul(_CameraMatrixV,float4(vectorWS,0)).xyz;
+}
 
 float4 TransformWorldToHClip(float3 positionWS){
     return mul(unity_MatrixVP,float4(positionWS,1));

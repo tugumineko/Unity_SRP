@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b787f4050780422d99abd2eec2cfaa8, type: 3}
   m_Name: BuiltinAssets
   m_EditorClassIdentifier: 
-  _BRDFLUT: {fileID: 2800000, guid: 0b057aabf3fb1405ca30dd2fc5efdfa5, type: 3}
-  _defaultMaterial: {fileID: 2100000, guid: a0f35f69ff2694d57a8997867546c244, type: 2}
+  _BRDFLUT: {fileID: 2800000, guid: 7583521fd8fae724f8b1721bfb77546b, type: 3}
+  _defaultMaterial: {fileID: 2100000, guid: c9e3d3e42963131499ae1542e1d2fa10, type: 2}
   _deferredLightingCulling: {fileID: 7200000, guid: 7ae46ce18aa18434a9657063ba37ed02,
     type: 3}

@@ -1,6 +1,6 @@
 ﻿#include "../ShaderLibrary/DeferredParams.hlsl"
 #include "../ShaderLibrary/SpaceTransform.hlsl"
-#include "../ShaderLibrary/PBRDeferred.hlsl"
+#include "../ShaderLibrary/AOSADeferred.hlsl"
 #include "../ShaderLibrary/TileDeferredInput.hlsl"
 
 #pragma multi_compile _ X_SHADOW_BIAS_RECEIVER_PIXEL
@@ -10,7 +10,6 @@
 #pragma multi_compile _ DEFERRED_LIGHTSHADE_BY_CS
 #pragma multi_compile _ DEFERRED_LIGHT_CULLING_AABB DEFERRED_LIGHT_CULLING_SIDES
 #pragma multi_compile _ DEFERRED_LIGHT_CULLING_DEPTH_SLICE
-#pragma multi_compile _ UNITY_REVERSED_Z
 #pragma multi_compile _ GBUFFER_ACCURATE_NORMAL
 
 #pragma kernel CSMain
@@ -133,27 +132,36 @@ bool Intersect(float3 tileFrustumCorners[4],float4 lightSphere){
 
 
 #if DEFERRED_BUFFER_DEBUGON
-half3 ShadeDebug(PBRShadeInput shadeInput,float depth){
+half3 ShadeDebug(AOSAShadeInput shadeInput,float depth)
+{
     int debugMode = _DeferredDebugMode;
     half3 color = 0;
-    if(debugMode == 1){ //albedo
-        color = shadeInput.albedo;
-    }else if(debugMode == 2){ //normal
-        color = (shadeInput.normal + 1) * 0.5;
-        // color = shadeInput.normal.z;
-    }else if(debugMode == 3){ //position
-        color = shadeInput.positionWS / 20;
-    }else if(debugMode == 4){//metalness
-        color = shadeInput.metalness;
-    }else if(debugMode == 5){ //roughness   
-        color = 1 - shadeInput.smooth;
-    }else if(debugMode == 6){ //visible light count
-        if(tileVisibleLightCount > MAX_LIGHT_COUNT_PER_TILE){
-            color = half4(1,0,0,1);
-        }else{
-            color = tileVisibleLightCount * 1.0 / MAX_LIGHT_COUNT_PER_TILE;
-        }
-    }else if(debugMode == 7){ //depth
+    if (debugMode == 1)//BaseColor
+    {
+        color = shadeInput.baseColor;
+    }
+    if (debugMode == 2)//Normal
+    {
+        color = shadeInput.normal;
+    }
+    if (debugMode == 3)//PositionWS
+    {
+        color = shadeInput.positionWS / 20;                     
+    }
+    if (debugMode == 4)//Smoothness
+    {
+        color = shadeInput.smoothness; 
+    }
+    if (debugMode == 5)//breakup
+    {
+        color = shadeInput.breakup;
+    }
+    if (debugMode == 6)//VisibleLightCount
+    {
+        color = 0;
+    }
+    if (debugMode == 7)//Depth
+    {
         color = depth;
     }
     return color;
@@ -171,7 +179,7 @@ void ShadePixelLight(uint2 xy,float depth){
     half4 g2 = _GBuffer2[xy];
     half4 g3 = _GBuffer3[xy];
     float3 positionWS = ReconstructPositionWS(uv,depth);
-    PBRShadeInput shadeInput;
+    AOSAShadeInput shadeInput;
     shadeInput.positionWS = positionWS;
     DecodeGBuffer(shadeInput,g0,g1,g2,g3);
     half3 color = 0;
@@ -179,19 +187,12 @@ void ShadePixelLight(uint2 xy,float depth){
     color = ShadeDebug(shadeInput,depth);
     #else
     //着色点几何信息
-    DECLARE_SHADE_POINT_DESC(sPointDesc,shadeInput);
-    //pbr材质相关
-    DECLARE_PBR_DESC(pbrDesc,shadeInput);
-    //平行光
-    ShadeLightDesc mainLightDesc = GetMainLightShadeDescWithShadow(shadeInput.positionWS,shadeInput.normal);
-    color = PBRShading(pbrDesc,sPointDesc,mainLightDesc);
-
-    for(uint i = 0; i < min(tileVisibleLightCount,MAX_LIGHT_COUNT_PER_TILE); i ++){
-        uint lightIndex = tileVisibleLightIndices[i];
-        float4 lightSphere = _DeferredOtherLightPositionAndRanges[lightIndex];
-        ShadeLightDesc lightDesc = GetPointLightShadeDesc(lightSphere,_DeferredOtherLightColors[lightIndex],shadeInput.positionWS);
-        color += PBRShading(pbrDesc,sPointDesc,lightDesc);
-    }
+    float3 viewDirection = normalize(_WorldSpaceCameraPos - positionWS);
+    float mainLightAttenuation = GetMainLightShadowAtten(shadeInput.positionWS,shadeInput.normal);
+    float shadow = 0;
+    float specular = 0;
+    GetLighting(viewDirection,shadeInput.normal,shadeInput.smoothness,_XMainLightDirection,mainLightAttenuation,shadow,specular);
+    color = half3(shadow,specular,shadeInput.breakup);
     #endif
     _OutTexture[xy] = half4(color,1);
 }

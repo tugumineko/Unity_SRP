@@ -69,8 +69,8 @@ XDirLight GetMainLight(){
 
 XOtherLight GetOtherLight(int index){
     XOtherLight light;
-    int idx = index / 4;
-    int offset = index % 4;
+    int idx = (uint)index / 4;
+    int offset = (uint)index % 4;
     int lightIndex  = unity_LightIndices[idx][offset];
     float4 positionRange = _XOtherLightPositionAndRanges[lightIndex];
     half4 color = _XOtherLightColors[lightIndex];

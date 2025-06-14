@@ -71,6 +71,9 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
             }
             #endif
 
+            
+
+            
             Varyings Vertex(Attributes input)
             {
                 Varyings output;

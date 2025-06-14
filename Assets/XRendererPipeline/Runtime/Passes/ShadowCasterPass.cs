@@ -175,7 +175,7 @@ namespace SRPLearn
                 cascadeRatio,cascadeResolution,lightComp.shadowNearPlane,out var matrixView,out var matrixProj,out var shadowSplitData);
                 shadowSplitData.shadowCascadeBlendCullingFactor = shadowSetting.cascadeBlendCullingFactor;
                 //generate ShadowDrawingSettings
-                ShadowDrawingSettings shadowDrawSetting = new ShadowDrawingSettings(cullingResults,lightData.mainLightIndex);
+                ShadowDrawingSettings shadowDrawSetting = new ShadowDrawingSettings(cullingResults,lightData.mainLightIndex,BatchCullingProjectionType.Orthographic);
                 shadowDrawSetting.splitData = shadowSplitData;
                 
                 //设置Cascade相关参数
