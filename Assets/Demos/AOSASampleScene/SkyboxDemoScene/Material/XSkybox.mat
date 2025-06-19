@@ -7,19 +7,14 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: AOSA
-  m_Shader: {fileID: 4800000, guid: 8b5170af76764db286082b6584b1569f, type: 3}
+  m_Name: XSkybox
+  m_Shader: {fileID: 4800000, guid: 05902563eb9445fb9f87db627e3152db, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _COMPENSATE_DISTANCE
-  - _COMPENSATE_RADIAL_ANGLE
-  - _COMPENSATE_SKEW
-  - _USE_ANIMATED_LINE_BOIL
-  - _USE_SMOOTH_UV_GRADIENT
-  m_InvalidKeywords:
-  - _REORIENT_NONE
-  - _WARP_ON
+  - _NIGHT
+  - _SIMULATIONSUNSHAPE
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -30,19 +25,7 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _BaseShadowedMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _BreakupMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 4}
-        m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -70,6 +53,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _MoonTex:
+        m_Texture: {fileID: 2800000, guid: f24dee844df00794da9d1a5a3c6847d1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -78,43 +65,53 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _StarTex:
+        m_Texture: {fileID: 2800000, guid: 2a934c43bc78d974cbba21fbcbd499d0, type: 3}
+        m_Scale: {x: 2, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SunTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AnimatedLineBoilFramerate: 3
-    - _BaseColorSaturation: 1
     - _BumpScale: 1
-    - _CompensateDistance: 1
-    - _CompensateRadialAngle: 1
-    - _CompensateSkew: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _HorizonHeight: 0.436
+    - _IsNight: 1
     - _Metallic: 0
+    - _MiddleHeight: 0.155
     - _Mode: 0
+    - _MoonGlowRadius: 0.108452335
+    - _MoonIntensity: 0.40161368
+    - _MoonSize: 5
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Reorient: 0
-    - _Smoothness: 0.34
+    - _SimulationSunShape: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _StarIntensity: 0.6746433
+    - _StarReduceValue: 0.1
+    - _SunGlowRadius: 0.65401614
+    - _SunIntensity: 0.9528495
+    - _SunRadius: 8
+    - _SunSize: 6.62
     - _UVSec: 0
-    - _UseAnimatedLineBoil: 1
-    - _UseSmoothUVGradient: 1
-    - _Warp: 1
-    - _WarpDistanceFadeMultiplier: 1
-    - _WarpSkew: 4
-    - _WarpWidthMultiplier: 1
-    - _WorldSpaceUVGradientX: 1
-    - _WorldSpaceUVGradientY: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColorOverlay: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-    - _BaseShadowedColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Color: {r: 0.5320754, g: 0.16363825, b: 0.16363825, a: 1}
+    - _BottomColor: {r: 0.15686275, g: 0.15686275, b: 0.19215688, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _WorldSpaceUVGradient: {r: 1, g: 1, b: 0, a: 0}
+    - _MiddleColor: {r: 0.093059, g: 0.11193246, b: 0.13286835, a: 1}
+    - _MoonColor: {r: 0.3805833, g: 0.3805833, b: 0.3805833, a: 1}
+    - _MoonGlowColor: {r: 2, g: 2, b: 2, a: 1}
+    - _SunColor: {r: 16, g: 16, b: 16, a: 1}
+    - _SunGlowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TopColor: {r: 0.07058824, g: 0.07058824, b: 0.11764707, a: 1}
   m_BuildTextureStacks: []

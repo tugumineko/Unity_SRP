@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _srpBatcher: 1
   _shadowSetting:
-    _maxShadowDistance: 61
+    _maxShadowDistance: 200
     _shadowCascadeCount: 4
     _cascadeRatio1: 1
     _cascadeRatio2: 2
@@ -53,7 +53,7 @@ MonoBehaviour:
     softBlurDownsample: 2.48
     heavyBlurDownsample: 5.64
     shadowStepCount: 3
-    shadowThreshold: 0.303
-    shadowThresholdSoftness: 0.237
-    shadowInnerGlow: 0.09
+    shadowThreshold: 0.089
+    shadowThresholdSoftness: 0.215
+    shadowInnerGlow: 0.111
     useWarpBloom: 0

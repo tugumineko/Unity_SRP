@@ -16,7 +16,7 @@ float3 TransformObjectToWorld(float3 positionOS){
 
 float3 TransformObjectToWorldVector(float3 vectorOS){
     float4 vectorWS = mul(unity_ObjectToWorld,float4(vectorOS,0));
-    return vectorWS.xyz;
+    return normalize(vectorWS.xyz);
 }
 
 float3 TransformObjectToWorldNormal(float3 normalOS)
@@ -38,7 +38,7 @@ float3 TransformWorldToView(float3 positionWS){
 
 float3 TransformWorldToViewVector(float3 vectorWS)
 {
-    return mul(_CameraMatrixV,float4(vectorWS,0)).xyz;
+    return normalize(mul(_CameraMatrixV,float4(vectorWS,0)).xyz);
 }
 
 float4 TransformWorldToHClip(float3 positionWS){
@@ -58,6 +58,25 @@ float3 ReconstructPositionWS(float2 uv, float depth){
     float3 positionWS = TransformPositionCSToWS(positionCS);
     return positionWS;
 }
+
+/*/**
+ * Creates a rotation matrix that orients an object to face a specific direction.
+ * Ideal for billboard effects.
+ *
+ * @param lookDirection The normalized direction the object should face.
+ * @return A 3x3 rotation matrix.
+ #1#
+float3x3 CreateViewFacingMatrix(float3 lookDirection)
+{
+    // Use Z-axis as up vector if lookDirection is too close to the world Y-axis
+    float3 up = lerp(float3(0, 0, 1), float3(0, 1, 0), step(abs(lookDirection.y), 0.99));
+    
+    float3 right = normalize(cross(up, lookDirection));
+    float3 newUp = normalize(cross(right, lookDirection)); 
+    
+    // The matrix columns are the new X, Y, and Z axes
+    return float3x3(right, newUp, lookDirection);
+}*/
 
 #define UnityObjectToClipPos ObjectToHClipPosition
 

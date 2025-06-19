@@ -5,6 +5,7 @@
 #include "HLSLSupport.cginc"
 
 //Unity 内置变量
+//link : https://docs.unity.cn/cn/2019.4/Manual/SL-UnityShaderVariables.html
 float3 _WorldSpaceCameraPos;
 float4x4 unity_MatrixV;
 float4x4 unity_MatrixInvV;
@@ -13,13 +14,15 @@ float4x4 unity_MatrixInvVP;
 float4 _ScreenParams;
 float4 _ProjectionParams;
 
+float4 _Time;
+
 //管线变量
 float3 _WorldSpaceCameraForward;
 float4x4 _CameraMatrixVPInv;
 float4x4 _CameraMatrixV;
 float4x4 _CameraMatrixV_Unity;
 
-#define TRANSFORM_TEX(tex, name) ((tex.xy) * name##_ST.xy + name##_ST.zw)
+#define TRANSFORM_TEX(coord, texname) ((coord.xy) * texname##_ST.xy + texname##_ST.zw)
 
 float4x4 glstate_matrix_projection;
 
@@ -29,6 +32,7 @@ float4x4 glstate_matrix_projection;
 CBUFFER_START(UnityPerDraw)
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
+float4x4 unity_WorldToLight;
 float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 

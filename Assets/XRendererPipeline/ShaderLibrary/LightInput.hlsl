@@ -20,6 +20,9 @@ half4 _XMainLightColor;
 
 //主灯光 世界空间->投影空间变换矩阵
 float4x4 _XMainLightMatrixWorldToShadowMap;
+//主灯光 世界空间->灯光空间变换矩阵
+float4x4 _XMainLightMatrixWorldToLocal;
+
 
 //非主光源的位置和范围,xyz代表位置，w代表范围
 float4 _XOtherLightPositionAndRanges[MAX_OTHER_VISIBLE_LIGHT_COUNT];

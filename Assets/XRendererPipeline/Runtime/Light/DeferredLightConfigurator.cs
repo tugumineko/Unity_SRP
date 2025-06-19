@@ -84,6 +84,7 @@ namespace SRPLearn{
                 var main = visibleLights[mainLightIndex];
                 Shader.SetGlobalVector(ShaderConstants.MainLightDirection,- main.light.transform.forward);
                 Shader.SetGlobalColor(ShaderConstants.MainLightColor,main.finalColor);
+                Shader.SetGlobalMatrix(ShaderConstants.MainLightMatrix,main.light.transform.worldToLocalMatrix);
             }else{
                 Shader.SetGlobalColor(ShaderConstants.MainLightColor,Vector4.zero);
             }
@@ -117,12 +118,12 @@ namespace SRPLearn{
         }
 
         public class ShaderConstants{   
-            
-            public static int MainLightDirection = Shader.PropertyToID("_XMainLightDirection");
-            public static int MainLightColor = Shader.PropertyToID("_XMainLightColor");
+            public static readonly int MainLightDirection = Shader.PropertyToID("_XMainLightDirection");
+            public static readonly int MainLightColor = Shader.PropertyToID("_XMainLightColor");
+            public static readonly int MainLightMatrix = Shader.PropertyToID("_XMainLightMatrixWorldToLocal");
             public static readonly int OtherLightPositionAndRanges = Shader.PropertyToID("_DeferredOtherLightPositionAndRanges");
-            public static int OtherLightColors = Shader.PropertyToID("_DeferredOtherLightColors");
-            public static int OtherLightCount = Shader.PropertyToID("_DeferredOtherLightCount");
+            public static readonly int OtherLightColors = Shader.PropertyToID("_DeferredOtherLightColors");
+            public static readonly int OtherLightCount = Shader.PropertyToID("_DeferredOtherLightCount");
         }
     }
 }

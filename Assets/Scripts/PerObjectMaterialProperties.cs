@@ -13,7 +13,7 @@ public class PerObjectMaterialProperties : MonoBehaviour
     
     [SerializeField][Range(0,1)]private float smoothness = 0.5f;
     
-    [SerializeField]private Vector2 worldSpaceUVGradient = new Vector2(0.1f,0.1f);
+    [SerializeField]private Vector2 worldSpaceUVGradient = Vector2.one;
     
     [SerializeField]private Color overlay = Color.gray;
     

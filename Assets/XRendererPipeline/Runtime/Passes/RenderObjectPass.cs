@@ -16,7 +16,7 @@ namespace SRPLearn{
             _isTransparent = transparent;
             _perObjectLight = perObjectLight;
         }
-
+        
         public RenderObjectPass(bool transparent,string lightModeTagId):this(transparent,lightModeTagId,true){
 
         }
@@ -30,11 +30,14 @@ namespace SRPLearn{
             var filterSetting = new FilteringSettings(_isTransparent? RenderQueueRange.transparent:RenderQueueRange.opaque);
             //绘制物体
             context.DrawRenderers(cullingResults,ref drawSetting,ref filterSetting);
+            
             //draw skybox
             if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
             {
                 context.DrawSkybox(camera);
-            }            
+            }
+
+            DrawCloudMesh(context, camera, ref cullingResults);
         }
 
         private DrawingSettings CreateDrawSettings(Camera camera){
@@ -46,5 +49,24 @@ namespace SRPLearn{
             drawSetting.perObjectData |= PerObjectData.LightIndices;
             return drawSetting;
         }
+
+        private void DrawCloudMesh(ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults)
+        {
+            var sortingSettings = new SortingSettings(camera)
+            {
+                criteria = SortingCriteria.None,
+            };
+            var drawingSetting = new DrawingSettings(new ShaderTagId("CloudPass"), sortingSettings)
+            {
+                perObjectData = _perObjectLight
+                    ? PerObjectData.LightData | PerObjectData.LightIndices
+                    : PerObjectData.None
+            };
+            
+            var fiteringSettings  =  new FilteringSettings(RenderQueueRange.transparent, layerMask : LayerMask.GetMask("Cloud"));
+            
+            context.DrawRenderers(cullingResults,ref drawingSetting,ref fiteringSettings);
+        }
+        
     }
 }
