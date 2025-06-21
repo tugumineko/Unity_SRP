@@ -15,7 +15,7 @@ Unity版本: 2022.3.53
 
 - Age-Of-Sail-Deferred-Rendering-Pipeline
   - 参考论文:  [Real-time non-photorealistic animation for immersive storytelling in “Age of Sail”](https://www.sciencedirect.com/science/article/pii/S2590148619300123#sec0015)
-
+- Dynamic Sky based on c# script   
 
 ---
 
