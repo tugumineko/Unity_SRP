@@ -20,7 +20,7 @@ namespace SRPLearn
             _commandBuffer.name = "FinalCompositingPass";
         }
 
-        public void Execute(ScriptableRenderContext context, Camera camera, ref AOSASetting setting)
+        public void Execute(RenderTargetIdentifier target,ScriptableRenderContext context, Camera camera, ref AOSASetting setting)
         {
             if (!_finalMaterial)
                 _finalMaterial = new Material(Shader.Find("Hidden/SRPLearn/FinalCompositingPass"));
@@ -58,7 +58,7 @@ namespace SRPLearn
 
             // Second Pass - draw to screen using TempRT
             _commandBuffer.SetGlobalTexture(ShaderProperties.IntermediateTex, TempRTId);
-            _commandBuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+            _commandBuffer.SetRenderTarget(target);
             _commandBuffer.DrawMesh(_fullscreenMesh, Matrix4x4.identity, _finalMaterial, 0, 1);
 
             // Release temporary RT

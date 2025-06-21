@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _srpBatcher: 1
   _shadowSetting:
-    _maxShadowDistance: 200
+    _maxShadowDistance: 101
     _shadowCascadeCount: 4
     _cascadeRatio1: 1
     _cascadeRatio2: 2
     _cascadeRatio3: 4
     _cascadeRatio4: 8
     _enableCSMBlend: 1
-    _cascadeShadowBlendDist: 0.1
+    _cascadeShadowBlendDist: 0.31
     _shadowBiasType: 1
-    _shadowAAType: 1
+    _shadowAAType: 2
     _debugShadowResolution: 0
     _debugShadowCascade: 0
     _debugShadowResolutionAlpha: 0.23
@@ -49,11 +49,23 @@ MonoBehaviour:
     warpTexture: {fileID: 2800000, guid: fbfe740b684d673449a5bdf7cef8c763, type: 3}
     warpGlobalScale: 128
     warpGlobalDistanceFade: 0.1
-    warpWidth: 0.003
-    softBlurDownsample: 2.48
-    heavyBlurDownsample: 5.64
+    warpWidth: 0.001
+    softBlurDownsample: 4.28
+    heavyBlurDownsample: 8.25
     shadowStepCount: 3
-    shadowThreshold: 0.089
-    shadowThresholdSoftness: 0.215
-    shadowInnerGlow: 0.111
-    useWarpBloom: 0
+    shadowThreshold: 0.247
+    shadowThresholdSoftness: 0.442
+    shadowInnerGlow: 0.405
+    useWarpBloom: 1
+  _antiAlias:
+    antiAliasType: 4
+    msaaLevel: 2
+    fXAADebug:
+      debugEdge: 0
+      cullPassThrough: 0
+    fXAAConfig:
+      absoluteLumaThreshold: 0.03
+      relativeLumaThreshold: 0.25
+      consoleCharpness: 1
+      qualitySubPixTrim: 0
+      qualitySubPixCap: 1

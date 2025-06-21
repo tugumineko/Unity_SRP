@@ -41,6 +41,7 @@ namespace SRPLearn{
         private RenderTexture _softBlurTexture;
         private RenderTexture _heavyBlurTexture;
         private RenderTexture _warpTexture;
+        private RenderTexture _colorTexture;
         
         private BlurPass _blurPass = new BlurPass();
         private BlitPass _blitPass = new BlitPass();
@@ -269,7 +270,21 @@ namespace SRPLearn{
                 return;
             }
             
-            _finalPass.Execute(context, camera, ref setting);
+            AntiAliasSetting  AASetting = _setting.antiAliasSetting;
+            bool isFXAAOn = AASetting.isFXAAOn;
+
+            if (!isFXAAOn)
+            {
+                _finalPass.Execute(BuiltinRenderTextureType.CameraTarget,context, camera, ref setting);
+            }
+            else
+            {
+                AntiAliasUtil.ConfigShaderPerCamera(_commandbuffer, AASetting);
+                AcquireARGB32TextureIfNot(context,camera,ShaderConstants.CameraColorTexture,ref _colorTexture,false);
+                _finalPass.Execute(_colorTexture,context, camera, ref setting);
+                PresentTextureToScreen(context, _colorTexture);
+            }
+            
             
             /*
              if(lightShadeByComputeShader){
@@ -403,7 +418,7 @@ namespace SRPLearn{
             public static readonly int GBuffer2 = Shader.PropertyToID("_GBuffer2");
             public static readonly int GBuffer3 = Shader.PropertyToID("_GBuffer3");
 
-            //public static readonly int CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
+            public static readonly int CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
             public static readonly int AOSAShadowTexture = Shader.PropertyToID("_AOSAShadowTexture");
             public static readonly int SoftBlurTexture = Shader.PropertyToID("_SoftBlurTexture");
             public static readonly int HeavyBlurTexture = Shader.PropertyToID("_HeavyBlurTexture");

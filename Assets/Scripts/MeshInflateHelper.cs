@@ -133,6 +133,12 @@ public static class MeshInflateHelper
         ref List<int> triangles)
     {
         Vector3[] meshVertices = mesh.vertices;
+
+        if (mesh.uv == null)
+        {
+            Debug.LogError("CopyDataToLists: mesh.uv is null. Maybe you don't set the uv!");
+        }
+
         Vector2[] meshUV0 = mesh.uv;
         int[] meshTriangles = mesh.triangles;
         
@@ -142,7 +148,7 @@ public static class MeshInflateHelper
         vertices.Clear();
         uv0.Clear();
         triangles.Clear();
-
+        
         for (int i = 0; i < vertexCount; i++)
         {
             vertices.Add(meshVertices[i]);

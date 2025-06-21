@@ -22,9 +22,6 @@ namespace SRPLearn
 
         [SerializeField]
         private ShadowSetting _shadowSetting = new ShadowSetting();
-        
-        //[SerializeField]
-        private AntiAliasSetting _antiAlias = new AntiAliasSetting(); // don't use AA
 
         [SerializeField]
         private BuiltinAssets _builtinAssets;
@@ -37,6 +34,9 @@ namespace SRPLearn
 
         [SerializeField]
         private AOSASetting _aosaSetting = new AOSASetting();
+
+        [SerializeField]
+        private AntiAliasSetting  _antiAlias = new AntiAliasSetting();
         
         protected override void OnValidate()
         {

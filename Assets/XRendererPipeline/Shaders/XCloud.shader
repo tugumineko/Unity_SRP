@@ -152,7 +152,7 @@
                 float sssArea = smoothstep(1.0 - _CloudSSSRadius, 1.0, VoL) * (1.0 - step(_CloudSSSRadius,0.0));
                 sssArea = pow(sssArea,4);
                 cloudLightedColor = lerp(cloudLightedColor, _CloudRimColor * 2.0, sssArea * (1.0 - thickness) * saturate(_CloudSSSIntensity));
-
+ 
                 float lightArea = smoothstep(1.0 - _CloudLightRadius, 1.0, VoL) * (1.0 - step(_CloudLightRadius,0.0));
                 lightArea = saturate(pow(lightArea,4) * _CloudLightRadiusIntensity + 0.2) * _CloudLightIntensity;
                 half3 cloudColor = lerp(_CloudColor, cloudLightedColor, lightArea);
@@ -160,9 +160,12 @@
                 //return half4(cloudColor,1);
 
                 half VDotDown = saturate(dot(viewDirectionWS, float3(0.0,-1.0,0.0)));
+
+                
+                
                 half cloudAlpha = smoothstep(0.0, _CloudHorizonSoft, VDotDown) * cloudFinalShape;
                 
-                return half4(ACESFilm(cloudColor), cloudAlpha);                
+                return half4(ACESFilm(cloudColor * saturate(VDotDown + 0.5)), cloudAlpha);                
             }
             
             ENDHLSL 

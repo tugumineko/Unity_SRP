@@ -43,6 +43,7 @@
         #pragma enable_cbuffer
         #include "SkyboxInput.hlsl"
         #include "../ShaderLibrary/Tonemapping.hlsl"
+        #include "../ShaderLibrary/MathFunction.hlsl"
         ENDHLSL 
         
         Pass
@@ -123,7 +124,7 @@
                     float2 moonUV = input.sunAndMoonUV.zw + 0.5;
                     half4 moonTex = UNITY_SAMPLE_TEX2D(_MoonTex,moonUV);
                     half3 moonColor = moonTex.r * _MoonColor * _MoonIntensity;
-                    half moonShape = lightRange; // * moonTex.a
+                    half moonShape = lightRange * moonTex.a;
                     moonColor *= moonShape;
                 
                     half3 moonGlowColor = _MoonGlowColor * moonGlow * _MoonIntensity;
@@ -138,9 +139,8 @@
                 #endif
 
                 return half4(ACESFilm(skyColor),1);
-
-                
             }
+            
             
             
             ENDHLSL 

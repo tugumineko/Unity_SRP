@@ -9,6 +9,7 @@ namespace SRPLearn{
         private RenderTargetIdentifier _source;
         private RenderTargetIdentifier _target;
         private CommandBuffer _command;
+        private AntiAliasUtil _antiAliasUtil;
 
         public BlitPass(){
              _command = new CommandBuffer();
