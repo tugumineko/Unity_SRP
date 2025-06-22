@@ -91,7 +91,7 @@ Shader "SRPLearn/AOSA"
         #pragma multi_compile _ _COMPENSATE_RADIAL_ANGLE
         #pragma multi_compile _ _COMPENSATE_SKEW
         #pragma multi_compile _ _COMPENSATE_DISTANCE
-        #pragma multi_compile _ _USE_ANIMATED_LINE_BOIL
+        //#pragma multi_compile _ _USE_ANIMATED_LINE_BOIL
         #pragma multi_compile _ _REORIENT_CONTOUR _REORIENT_ALL
         
         #pragma vertex WarpPassVertex

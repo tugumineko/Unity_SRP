@@ -4,7 +4,7 @@ namespace SRPLearn
 {
     public enum AnimatedLineBoilFramerateType
     {
-        RealTime = 0,
+        Off = 0,
         FPS_24,
         FPS_12,
         FPS_8,
@@ -42,8 +42,8 @@ namespace SRPLearn
         public bool compensateRadialAngle = false;
         public bool compensateSkew =  false;
         public bool compensateDistance = false;
-        public bool useAnimatedLineBoil = false;
-        public AnimatedLineBoilFramerateType animatedLineBoilFramerate = AnimatedLineBoilFramerateType.RealTime;
+        //public bool useAnimatedLineBoil = false;
+        public AnimatedLineBoilFramerateType animatedLineBoilFramerate = AnimatedLineBoilFramerateType.Off;
         public OrientType orientation = OrientType.None;
         
         public Texture2D warpTexture;

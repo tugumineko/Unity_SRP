@@ -39,7 +39,7 @@ namespace SRPLearn
         private void SetWarpPassParams(CommandBuffer commandBuffer, ref AOSASetting setting)
         {
             float t = (float)(Time.realtimeSinceStartupAsDouble % 3600.0);
-            Vector4 lineBoilTime = new Vector4(t,//realtime
+            Vector4 lineBoilTime = new Vector4(0,//Off
                                             Mathf.Floor(t * 24)/24,//24fps
                                             Mathf.Floor(t * 12)/12,//12fps
                                             Mathf.Floor(t * 8)/8);//8fps
@@ -54,7 +54,7 @@ namespace SRPLearn
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.CompensateDistance,setting.compensateDistance);
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.CompensateSkew,setting.compensateSkew);
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.CompensateRadialAngle,setting.compensateRadialAngle);
-            Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.UseAnimatedLineBoil,setting.useAnimatedLineBoil);
+            //Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.UseAnimatedLineBoil,setting.useAnimatedLineBoil);
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.ReorientNone,setting.orientation == OrientType.None);
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.ReorientContour,setting.orientation == OrientType.Contour);
             Utils.SetGlobalShaderKeyword(commandBuffer,ShaderKeywords.ReorientAll,setting.orientation == OrientType.All);
@@ -83,7 +83,7 @@ namespace SRPLearn
             public const string CompensateRadialAngle = "_COMPENSATE_RADIAL_ANGLE";
             public const string CompensateSkew =  "_COMPENSATE_SKEW";
             public const string CompensateDistance = "_COMPENSATE_DISTANCE";
-            public const string UseAnimatedLineBoil =  "_USE_ANIMATED_LINE_BOIL";
+            //public const string UseAnimatedLineBoil =  "_USE_ANIMATED_LINE_BOIL";
             public const string ReorientNone =   "_REORIENT_NONE";
             public const string ReorientContour =   "_REORIENT_CONTOUR";
             public const string ReorientAll =    "_REORIENT_ALL";

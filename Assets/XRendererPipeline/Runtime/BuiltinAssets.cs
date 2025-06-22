@@ -7,8 +7,8 @@ namespace SRPLearn{
     [CreateAssetMenu(menuName = "SRPLearn/BuiltinAssets")]
     public class BuiltinAssets:ScriptableObject
     {
-        [SerializeField]
-        private Texture2D _BRDFLUT;
+        //[SerializeField]
+        private Texture2D _BRDFLUT; // BRDFLUT is not used.
         [SerializeField]
         private Material _defaultMaterial;
         [SerializeField]

@@ -6,9 +6,6 @@ using UnityEngine;
 public static class MeshInflateHelper
 {
     public enum MeshType { Closed, SemiOpen, FullyOpen }
-
-
-    
     
     /// <summary>
     /// Edge : 包含一条边的两个顶点索引，以及与该边相关的两个三角形的顶点索引。

@@ -28,8 +28,9 @@ WarpVaryings WarpPassVertex ( WarpAttributes input)
 
     output.positionCS = TransformWorldToHClip(float4(positionWS,1.0));
 
-    float3 normalInflatedWS = TransformObjectToWorldNormal(input.normalInflatedOS);
-    float3 normalInflatedVS = TransformWorldToViewNormal(normalInflatedWS);
+    //It is inflated, so it can't be normalized
+    float3 normalInflatedWS = mul(input.normalInflatedOS, (float3x3)unity_WorldToObject);
+    float3 normalInflatedVS = mul(normalInflatedWS, (float3x3)unity_MatrixInvV);
     float2 normalInflatedCS = mul((float2x2)unity_MatrixP,normalInflatedVS);
     Inflate(output.positionCS, normalInflatedCS, _WarpWidth * _WarpWidthMultiplier, distanceFromCamera);
 
@@ -64,9 +65,9 @@ float4 WarpPassFragment(WarpVaryings input) : SV_Target
     float2 uv = input.uv;
 
     // 4.2. Animated line boil
-    #if _USE_ANIMATED_LINE_BOIL
-        uv.x += (_LineBoilTime[_AnimatedLineBoilFramerate] * 0.3) % 1.0;  
-    #endif
+    //#if _USE_ANIMATED_LINE_BOIL
+    uv.x += (_LineBoilTime[_AnimatedLineBoilFramerate] * 0.3) % 1.0;  
+    //#endif
 
     float2 gradU, gradV;
     #if _USE_SMOOTH_UV_GRADIENT
