@@ -20,6 +20,7 @@ namespace SRPLearn{
         private DeferredLightConfigurator _deferredLightConfigurator = new DeferredLightConfigurator();
         private WarpPass _warpPass = new WarpPass();
         private FinalCompositingPass _finalPass = new FinalCompositingPass();
+        private LensFlarePass _lensFlarePass = new LensFlarePass();
         
         private List<RenderTexture> _GBuffers = new List<RenderTexture>();
         private RenderTargetIdentifier[] _GBufferRTIs;
@@ -236,6 +237,7 @@ namespace SRPLearn{
             //shadowTexture的计算在computer shader中完成
             AcquireARGB32TextureIfNot(context, camera, ShaderConstants.AOSAShadowTexture,ref _shadowTexture,true);
             
+            //光照剔除并计算shadowTexture
             var deferredTileLightCullingParams = new DeferredTileLightCulling.DeferredTileLightCullingParams(){
                 cameraRenderDescription = cameraDesc,
                 renderTargetIdentifier = _shadowTexture,
@@ -243,6 +245,7 @@ namespace SRPLearn{
             };
             _deferredLightingCulling.Execute(context,ref deferredTileLightCullingParams);
 
+            //进行最后的图像合成阶段
             AOSASetting  setting = _setting.aosaSetting;
 
             //PresentTextureToScreen(context, _shadowTexture);
@@ -263,7 +266,6 @@ namespace SRPLearn{
             _warpPass.Config(_warpTexture);
             _warpPass.Execute(context, ref cullingResults,camera,ref setting);
             
-
             if (setting.debugmode != 0)
             {
                 AOSADebug(context,(int)setting.debugmode);
@@ -276,12 +278,14 @@ namespace SRPLearn{
             if (!isFXAAOn)
             {
                 _finalPass.Execute(BuiltinRenderTextureType.CameraTarget,context, camera, ref setting);
+                _lensFlarePass.Execute(context);
             }
             else
             {
                 AntiAliasUtil.ConfigShaderPerCamera(_commandbuffer, AASetting);
                 AcquireARGB32TextureIfNot(context,camera,ShaderConstants.CameraColorTexture,ref _colorTexture,false);
                 _finalPass.Execute(_colorTexture,context, camera, ref setting);
+                _lensFlarePass.Execute(context);
                 PresentTextureToScreen(context, _colorTexture);
             }
             
@@ -315,6 +319,8 @@ namespace SRPLearn{
                 }
             }
             */
+            
+            
             
             #if UNITY_EDITOR
             if(camera.cameraType == CameraType.SceneView && UnityEditor.Handles.ShouldRenderGizmos()){
