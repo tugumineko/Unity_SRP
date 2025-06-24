@@ -12,15 +12,17 @@ namespace SRPLearn
 
         private Mesh _fullscreenMesh;
 
-        private static readonly int TempRTId = Shader.PropertyToID("_TempFinalRT");
+        private RenderTargetIdentifier[] _mrt;
 
         public FinalCompositingPass()
         {
             _commandBuffer = new CommandBuffer();
             _commandBuffer.name = "FinalCompositingPass";
+
+            _mrt = new RenderTargetIdentifier[2];
         }
 
-        public void Execute(RenderTargetIdentifier target,ScriptableRenderContext context, Camera camera, ref AOSASetting setting)
+        public void Execute(RenderTargetIdentifier backbufferTarget, ScriptableRenderContext context, Camera camera, ref AOSASetting setting)
         {
             if (!_finalMaterial)
                 _finalMaterial = new Material(Shader.Find("Hidden/SRPLearn/FinalCompositingPass"));
@@ -28,41 +30,48 @@ namespace SRPLearn
             if (!_fullscreenMesh)
                 _fullscreenMesh = Utils.CreateFullscreenMesh();
 
-            int width = Screen.width;
-            int height = Screen.height;
-            var descriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB32, 0)
+            int width = camera.pixelWidth;
+            int height = camera.pixelHeight;
+
+            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height, RenderTextureFormat.ARGB32, 0)
             {
                 sRGB = true
             };
 
             _commandBuffer.Clear();
 
-            // Allocate temporary RT for first pass output
-            _commandBuffer.GetTemporaryRT(TempRTId, descriptor);
+            // Allocate MRT targets
+            _commandBuffer.GetTemporaryRT(ShaderProperties.CompositingColorTex, descriptor);
+            _commandBuffer.GetTemporaryRT(ShaderProperties.CompositingBloomTex, descriptor);
 
-            _commandBuffer.SetRenderTarget(TempRTId);
-            _commandBuffer.ClearRenderTarget(true, true, Color.cyan);
-            context.ExecuteCommandBuffer(_commandBuffer);
-            _commandBuffer.Clear();
-            
-            // Set shadow parameters
+            _mrt[0] = new RenderTargetIdentifier(ShaderProperties.CompositingColorTex);
+            _mrt[1] = new RenderTargetIdentifier(ShaderProperties.CompositingBloomTex);
+
+            // Set MRT with dummy depth
+            _commandBuffer.SetRenderTarget(_mrt, BuiltinRenderTextureType.None);
+            _commandBuffer.ClearRenderTarget(false, true, Color.clear);
+
+            // Setup global parameters
             Vector4 finalShadowParams = new Vector4(setting.shadowStepCount, setting.shadowThreshold,
                 setting.shadowThresholdSoftness, setting.shadowInnerGlow);
+
             _commandBuffer.SetGlobalVector(ShaderProperties.FinalShadowParams, finalShadowParams);
             _commandBuffer.SetGlobalFloat(ShaderProperties.WarpBloom, setting.useWarpBloom ? 1.0f : 0.0f);
             _commandBuffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
-            // First Pass - draw to TempRT
-            _commandBuffer.SetRenderTarget(TempRTId);
+            // First pass: render fullscreen quad to MRTs
             _commandBuffer.DrawMesh(_fullscreenMesh, Matrix4x4.identity, _finalMaterial, 0, 0);
 
-            // Second Pass - draw to screen using TempRT
-            _commandBuffer.SetGlobalTexture(ShaderProperties.IntermediateTex, TempRTId);
-            _commandBuffer.SetRenderTarget(target);
+            // Second pass: composite MRTs into screen
+            _commandBuffer.SetGlobalTexture(ShaderProperties.CompositingColorTex, ShaderProperties.CompositingColorTex);
+            _commandBuffer.SetGlobalTexture(ShaderProperties.CompositingBloomTex, ShaderProperties.CompositingBloomTex);
+
+            _commandBuffer.SetRenderTarget(backbufferTarget);
             _commandBuffer.DrawMesh(_fullscreenMesh, Matrix4x4.identity, _finalMaterial, 0, 1);
 
-            // Release temporary RT
-            _commandBuffer.ReleaseTemporaryRT(TempRTId);
+            // Release temporary MRTs
+            _commandBuffer.ReleaseTemporaryRT(ShaderProperties.CompositingColorTex);
+            _commandBuffer.ReleaseTemporaryRT(ShaderProperties.CompositingBloomTex);
 
             context.ExecuteCommandBuffer(_commandBuffer);
         }
@@ -71,7 +80,9 @@ namespace SRPLearn
         {
             public static readonly int FinalShadowParams = Shader.PropertyToID("_FinalShadowParams");
             public static readonly int WarpBloom = Shader.PropertyToID("_WarpBloom");
-            public static readonly int IntermediateTex = Shader.PropertyToID("_IntermediateTex");
+
+            public static readonly int CompositingColorTex = Shader.PropertyToID("_CompositingColorTex");
+            public static readonly int CompositingBloomTex = Shader.PropertyToID("_CompositingBloomTex");
         }
     }
 }

@@ -15,7 +15,7 @@ namespace SRPLearn{
         private RenderObjectPass _opaquePass = new RenderObjectPass(false,LightModeId,false);
        
         private ShadowCasterPass _shadowCastPass = new ShadowCasterPass();
-        //private DeferredLightingPass _deferredLightingPass = new DeferredLightingPass();
+        private DeferredLightingPass _deferredLightingPass = new DeferredLightingPass();
         private DeferredTileLightCulling _deferredLightingCulling;
         private DeferredLightConfigurator _deferredLightConfigurator = new DeferredLightConfigurator();
         private WarpPass _warpPass = new WarpPass();
@@ -39,10 +39,26 @@ namespace SRPLearn{
         
         private RenderTexture _depthTexture;
         private RenderTexture _shadowTexture;
+        private RenderTexture _specularTexture;
         private RenderTexture _softBlurTexture;
+        private RenderTexture _softBlurTexture2;
         private RenderTexture _heavyBlurTexture;
+        private RenderTexture _heavyBlurTexture2;
         private RenderTexture _warpTexture;
         private RenderTexture _colorTexture;
+        
+        private List<RenderTexture> _AOSATextures = new List<RenderTexture>();
+        private RenderTargetIdentifier[] _AOSARTIs;
+        private  int[] _AOSANameIDs =
+        {
+            ShaderConstants.AOSAShadowTexture,
+            ShaderConstants.AOSASpecularTexture,
+        };
+        private RenderTextureFormat[] _AOSAFormats = 
+        {
+            RenderTextureFormat.ARGB32,
+            RenderTextureFormat.ARGB32,
+        };
         
         private BlurPass _blurPass = new BlurPass();
         private BlitPass _blitPass = new BlitPass();
@@ -136,43 +152,6 @@ namespace SRPLearn{
             }
         }
         
-        private RenderTargetIdentifier AcquireShadowTextureIfNot(ScriptableRenderContext context, Camera camera,
-            bool enableRandomWrite = false)
-        {
-            if (_shadowTexture)
-            {
-                if (_shadowTexture.width != camera.pixelWidth || _shadowTexture.height != camera.pixelHeight ||
-                    _shadowTexture.enableRandomWrite != enableRandomWrite)
-                {
-                    ReleaseShadowTexture();
-                }
-            }
-
-            if (_shadowTexture == null)
-            {
-                RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight);
-                descriptor.depthBufferBits = 0;
-                descriptor.sRGB = true;
-                descriptor.colorFormat = RenderTextureFormat.ARGB32;
-                descriptor.enableRandomWrite = enableRandomWrite;
-                _shadowTexture = RenderTexture.GetTemporary(descriptor);
-                _shadowTexture.Create();
-                _commandbuffer.Clear();
-                _commandbuffer.SetGlobalTexture(ShaderConstants.AOSAShadowTexture, _shadowTexture);
-                context.ExecuteCommandBuffer(_commandbuffer);
-            }
-            return _shadowTexture;
-        }
-        
-        private void ReleaseShadowTexture()
-        {
-            if (_shadowTexture)
-            {
-                RenderTexture.ReleaseTemporary(_shadowTexture);
-                _shadowTexture = null;
-            }
-        }
-        
         protected override void ConfigShaderPropertiesPipeline(ScriptableRenderContext context)
         {
             base.ConfigShaderPropertiesPipeline(context);
@@ -233,38 +212,44 @@ namespace SRPLearn{
             
             //渲染非透明物体
             _opaquePass.Execute(context,camera,ref cullingResults);
-
-            //shadowTexture的计算在computer shader中完成
-            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.AOSAShadowTexture,ref _shadowTexture,true);
             
-            //光照剔除并计算shadowTexture
+            AOSASetting setting = _setting.aosaSetting;
+
+            //进行一个完整的渲染流程得到warpPass
+            AcquireWarpTextureIfNot(context,camera);
+            _warpPass.Config(_warpTexture);
+            _warpPass.Execute(context, ref cullingResults,camera,ref setting);
+            
+            //光照剔除
             var deferredTileLightCullingParams = new DeferredTileLightCulling.DeferredTileLightCullingParams(){
                 cameraRenderDescription = cameraDesc,
                 renderTargetIdentifier = _shadowTexture,
                 lightShadeByComputeShader = true
             };
             _deferredLightingCulling.Execute(context,ref deferredTileLightCullingParams);
-
-            //进行最后的图像合成阶段
-            AOSASetting  setting = _setting.aosaSetting;
-
-            //PresentTextureToScreen(context, _shadowTexture);
-            //return;
             
+            //设置MRT
+            _commandbuffer.Clear();
+            AcquireAOSATexturesIfNot(context,camera);
+            AcquireDepthTextureIfNot(context,camera);
+            _commandbuffer.SetRenderTarget(_AOSARTIs,BuiltinRenderTextureType.None);
+            _commandbuffer.ClearRenderTarget(true, true, Color.clear);
+            context.ExecuteCommandBuffer(_commandbuffer);
+            
+            _deferredLightingPass.Execute(context);
+            
+            //进行最后的图像处理阶段
             AcquireARGB32TextureIfNot(context, camera, ShaderConstants.SoftBlurTexture,ref _softBlurTexture);
             AcquireARGB32TextureIfNot(context, camera, ShaderConstants.HeavyBlurTexture,ref _heavyBlurTexture);
             
-            _blurPass.Config(_shadowTexture,_softBlurTexture,_heavyBlurTexture,ref setting);
+            _blurPass.Config(_AOSATextures[0],_softBlurTexture,_heavyBlurTexture,ref setting);
             _blurPass.Execute(context,camera);
             
-            //PresentTextureToScreen(context, _softBlurTexture);
-            //PresentTextureToScreen(context, _heavyBlurTexture);
-            //return; 
-
-            AcquireWarpTextureIfNot(context,camera);
+            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.SoftBlurTexture2, ref _softBlurTexture2);
+            AcquireARGB32TextureIfNot(context, camera, ShaderConstants.HeavyBlurTexture2, ref _heavyBlurTexture2);
             
-            _warpPass.Config(_warpTexture);
-            _warpPass.Execute(context, ref cullingResults,camera,ref setting);
+            _blurPass.Config(_AOSATextures[1], _softBlurTexture2, _heavyBlurTexture2, ref setting);
+            _blurPass.Execute(context,camera);
             
             if (setting.debugmode != 0)
             {
@@ -288,39 +273,6 @@ namespace SRPLearn{
                 _lensFlarePass.Execute(context);
                 PresentTextureToScreen(context, _colorTexture);
             }
-            
-            
-            /*
-             if(lightShadeByComputeShader){
-                //如果光照是从CS计算的，需要一个Blit操作将图形从RT拷贝到设备屏幕
-                _blitPass.Config(_colorTexture,BuiltinRenderTextureType.CameraTarget);
-                _blitPass.Execute(context);
-            }else{
-                //如果光照不从CS计算
-
-                //如果开启FXAA，那么LightPass也需要先渲染到RT上
-                if(isFXAAOn){
-                    _commandbuffer.Clear();
-                    _commandbuffer.SetRenderTarget(_colorTexture);
-                    context.ExecuteCommandBuffer(_commandbuffer);
-                }else{
-                    //从MRT换回CameraTarget
-                    _commandbuffer.Clear();
-                    _commandbuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                    context.ExecuteCommandBuffer(_commandbuffer);
-                }
-                _deferredLightingPass.Execute(context);
-                if(isFXAAOn){
-                    _commandbuffer.Clear();
-                    _commandbuffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-                    context.ExecuteCommandBuffer(_commandbuffer);
-                    _blitPass.Config(_colorTexture,BuiltinRenderTextureType.CameraTarget);
-                    _blitPass.Execute(context);
-                }
-            }
-            */
-            
-            
             
             #if UNITY_EDITOR
             if(camera.cameraType == CameraType.SceneView && UnityEditor.Handles.ShouldRenderGizmos()){
@@ -388,6 +340,52 @@ namespace SRPLearn{
                 _depthTexture = null;
             }
         }
+
+        private void ReleaseAOSATextures()
+        {
+            if (_AOSATextures.Count > 0)
+            {
+                foreach (var aosa in _AOSATextures)
+                {
+                    if (aosa)
+                    {
+                        RenderTexture.ReleaseTemporary(aosa);
+                    }
+                }
+                _AOSATextures.Clear();
+                _AOSARTIs = null;
+            }
+        }
+
+        private void AcquireAOSATexturesIfNot(ScriptableRenderContext context, Camera camera)
+        {
+            if (_AOSATextures.Count > 0)
+            {
+                var aosa = _AOSATextures[0];
+                if (aosa.width != camera.pixelWidth || aosa.height != camera.pixelHeight)
+                {
+                    this.ReleaseAOSATextures();
+                }
+            }
+
+            if (_AOSATextures.Count == 0)
+            {
+                _commandbuffer.Clear();
+                _AOSARTIs = new RenderTargetIdentifier[2];
+                for (var i = 0; i < 2; i++)
+                {
+                    RenderTextureDescriptor descriptor = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight, _AOSAFormats[i], 0, 1);
+                    descriptor.sRGB =  true;
+                    var rt = RenderTexture.GetTemporary(descriptor);
+                    rt.filterMode = FilterMode.Bilinear;
+                    rt.Create();
+                    _AOSATextures.Add(rt);
+                    _commandbuffer.SetGlobalTexture(_AOSANameIDs[i], rt);
+                    _AOSARTIs[i] = rt;
+                }
+                context.ExecuteCommandBuffer(_commandbuffer);
+            }
+        }
         
         private void ConfigMRT(ScriptableRenderContext context,ref CameraRenderDescription cameraRenderDescription){
             this.AcquireGBuffersIfNot(context,cameraRenderDescription.camera);
@@ -410,7 +408,7 @@ namespace SRPLearn{
             _deferredLightingCulling.Dispose();
             this.ReleaseGBuffers();
             this.ReleaseDepthTexture();
-            this.ReleaseARGB32Texture(ref _shadowTexture);
+            this.ReleaseAOSATextures();
             this.ReleaseARGB32Texture(ref _softBlurTexture);
             this.ReleaseARGB32Texture(ref _heavyBlurTexture);
             this.ReleaseWarpTexture();
@@ -426,8 +424,11 @@ namespace SRPLearn{
 
             public static readonly int CameraColorTexture = Shader.PropertyToID("_CameraColorTexture");
             public static readonly int AOSAShadowTexture = Shader.PropertyToID("_AOSAShadowTexture");
+            public static readonly int AOSASpecularTexture = Shader.PropertyToID("_AOSASpecularTexture");
             public static readonly int SoftBlurTexture = Shader.PropertyToID("_SoftBlurTexture");
             public static readonly int HeavyBlurTexture = Shader.PropertyToID("_HeavyBlurTexture");
+            public static readonly int SoftBlurTexture2 = Shader.PropertyToID("_SoftBlurTexture2");
+            public static readonly int HeavyBlurTexture2 =  Shader.PropertyToID("_HeavyBlurTexture2");
             public static readonly int ScreenWarpTexture = Shader.PropertyToID("_ScreenWarpTexture");
             
             public static readonly int CameraDepthTexture = Shader.PropertyToID("_XDepthTexture");
@@ -477,7 +478,7 @@ namespace SRPLearn{
                     PresentTextureToScreen(context, _GBuffers[3]);
                     break;
                 case 5:
-                    PresentTextureToScreen(context, _shadowTexture);
+                    PresentTextureToScreen(context, _AOSATextures[0]);
                     break;
                 case 6:
                     PresentTextureToScreen(context, _softBlurTexture);
@@ -486,9 +487,18 @@ namespace SRPLearn{
                     PresentTextureToScreen(context, _heavyBlurTexture);
                     break;
                 case 8:
-                    PresentTextureToScreen(context, _warpTexture);
+                    PresentTextureToScreen(context, _AOSATextures[1]);
                     break;
                 case 9:
+                    PresentTextureToScreen(context, _softBlurTexture2);
+                    break;
+                case 10: 
+                    PresentTextureToScreen(context, _heavyBlurTexture2);
+                    break;
+                case 11:
+                    PresentTextureToScreen(context, _warpTexture);
+                    break;
+                case 12:
                     PresentTextureToScreen(context, _depthTexture);
                     break;
             }

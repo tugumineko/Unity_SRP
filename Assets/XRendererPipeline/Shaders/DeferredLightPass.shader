@@ -9,7 +9,7 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
         #pragma enable_cbuffer
         #include "../ShaderLibrary/DeferredParams.hlsl"
         #include "../ShaderLibrary/SpaceTransform.hlsl"
-        #include "../ShaderLibrary/PBRDeferred.hlsl"
+        #include "../ShaderLibrary/AOSADeferred.hlsl"
         #include "../ShaderLibrary/TileDeferredInput.hlsl"
         
         ENDHLSL
@@ -44,35 +44,17 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                 half2 uv            : TEXCOORD0;
             };
 
+            struct Textures
+            {
+                half4 ShadowColorMap : SV_Target0;
+                half4 SpecularColorMap : SV_Target1;
+            };
 
+            Texture2D _AOSAShadowTexture;
+            Texture2D _AOSASpecularTexture;
+            
             SamplerState sampler_pointer_clamp;
             Texture2D _XDepthTexture;
- 
-            #if DEFERRED_BUFFER_DEBUGON
-            half3 ShadeDebug(PBRShadeInput shadeInput,float depth,uint lightCount){
-                int debugMode = _DeferredDebugMode;
-                half3 color = 0;
-                if(debugMode == 1){ //albedo
-                    color = shadeInput.albedo;
-                }else if(debugMode == 2){ //normal
-                    color = shadeInput.normal ;
-                }else if(debugMode == 3){ //position
-                    color = shadeInput.positionWS / 20;
-                }else if(debugMode == 4){//metalness
-                    color = shadeInput.metalness;
-                }else if(debugMode == 5){ //roughness   
-                    color = 1 - shadeInput.smooth;
-                }else if(debugMode == 6){ //visible light count
-                    color = lightCount * 1.0 / MAX_LIGHT_COUNT_PER_TILE;
-                }else if(debugMode == 7){ //depth
-                    color = depth;
-                }
-                return color;
-            }
-            #endif
-
-            
-
             
             Varyings Vertex(Attributes input)
             {
@@ -82,7 +64,7 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                 return output;
             }
 
-            half4 Fragment(Varyings input) : SV_Target
+            Textures Fragment(Varyings input) 
             {   
                 float2 uv = input.uv;
                 float depth = _XDepthTexture.Sample(sampler_pointer_clamp,input.uv).x;
@@ -90,7 +72,7 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                 half4 g1 =  _GBuffer1.Sample(sampler_pointer_clamp,input.uv);
                 half4 g2 =  _GBuffer2.Sample(sampler_pointer_clamp,input.uv);
                 half4 g3 =  _GBuffer3.Sample(sampler_pointer_clamp,input.uv);
-                PBRShadeInput shadeInput;
+                AOSAShadeInput shadeInput;
                 float3 positionWS = ReconstructPositionWS(uv,depth);
                 shadeInput.positionWS = positionWS;
                 DecodeGBuffer(shadeInput,g0,g1,g2,g3);
@@ -100,30 +82,31 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                 uint tileIndex = tileId.y * _DeferredTileParams.z + tileId.x;
                 uint lightCount = _TileLightsArgsBuffer[tileIndex];
 
-                half3 color = 0;
+                half3 shadowMap = 0, specularMap = 0;
+                float3 viewDirection = normalize(_WorldSpaceCameraPos - positionWS);
+                float shadow = 0, specular = 0;
+                float mainLightAttenuation = GetMainLightShadowAtten(shadeInput.positionWS, shadeInput.normal);
+                GetLighting(viewDirection, shadeInput.normal, shadeInput.smoothness,_XMainLightDirection,mainLightAttenuation,shadow,specular);
+                shadowMap += shadow * _XMainLightColor;
+                specularMap += specular * _XMainLightColor;
+                
+                uint tileLightOffset = tileIndex * MAX_LIGHT_COUNT_PER_TILE;
+                for(uint i = 0; i < lightCount; i ++){
+                    uint lightIndex = _TileLightsIndicesBuffer[tileLightOffset + i];
+                    float4 lightSphere = _DeferredOtherLightPositionAndRanges[lightIndex];
+                    half4 lightColor = _DeferredOtherLightColors[lightIndex];
+                    ShadeLightDesc lightDesc = GetPointLightShadeDesc(lightSphere,1,shadeInput.positionWS);
+                    shadow = 0;
+                    specular = 0;
+                    GetLighting(viewDirection,shadeInput.normal,shadeInput.smoothness,lightDesc.dir,lightDesc.color.r,shadow,specular);    
+                    shadowMap += shadow * lightColor;
+                    specularMap += specular * lightColor;
+                }
 
-                #if DEFERRED_BUFFER_DEBUGON
-                    color = ShadeDebug(shadeInput,depth,lightCount);
-                #else
-                    //着色点几何信息
-                    DECLARE_SHADE_POINT_DESC(sPointDesc,shadeInput);
-                    //pbr材质相关
-                    DECLARE_PBR_DESC(pbrDesc,shadeInput);
-                    //平行光
-                    ShadeLightDesc mainLightDesc = GetMainLightShadeDescWithShadow(shadeInput.positionWS,shadeInput.normal);
-                    color = PBRShading(pbrDesc,sPointDesc,mainLightDesc);
-
-                    uint tileLightOffset = tileIndex * MAX_LIGHT_COUNT_PER_TILE;
-                    for(uint i = 0; i < lightCount; i ++){
-                        uint lightIndex = _TileLightsIndicesBuffer[tileLightOffset + i];
-                        float4 lightSphere = _DeferredOtherLightPositionAndRanges[lightIndex];
-                        half4 lightColor = _DeferredOtherLightColors[lightIndex];
-                        ShadeLightDesc lightDesc = GetPointLightShadeDesc(lightSphere,lightColor,shadeInput.positionWS);
-                        color += PBRShading(pbrDesc,sPointDesc,lightDesc);
-                    }
-                #endif
-
-                return half4(color,1);
+                Textures output;
+                output.ShadowColorMap = half4(shadowMap,1);
+                output.SpecularColorMap = half4(specularMap,1);
+                return output;
             }
             ENDHLSL
         }

@@ -57,7 +57,6 @@ namespace SRPLearn{
             }
             var cameraDes = tileLightCullingParams.cameraRenderDescription;
             var renderTargetIdentifier = tileLightCullingParams.renderTargetIdentifier;
-            var lightShadeByComputeShader = tileLightCullingParams.lightShadeByComputeShader;
 
             uint tileSizeX,tileSizeY,tileSizeZ;
             _computeShader.GetKernelThreadGroupSizes(0,out tileSizeX,out tileSizeY,out tileSizeZ);
@@ -69,11 +68,7 @@ namespace SRPLearn{
 
             _commandbuffer.Clear();
             _commandbuffer.SetGlobalVector(ShaderConstants.DeferredTileParams,new Vector4(tileSizeX,tileSizeY,tileCountX,tileCountY));
-            if(lightShadeByComputeShader){
-                _commandbuffer.SetComputeTextureParam(_computeShader,0,ShaderConstants.OutTexture,renderTargetIdentifier);
-            }else{
-                EnsureTileComputeBuffer(tileCountX,tileCountY);
-            }
+            EnsureTileComputeBuffer(tileCountX,tileCountY);
             _commandbuffer.SetComputeVectorParam(_computeShader,ShaderConstants.TileCount,new Vector4(tileCountX,tileCountY,0,0));
             var camera = cameraDes.camera;
             var nearPlaneZ = camera.nearClipPlane;

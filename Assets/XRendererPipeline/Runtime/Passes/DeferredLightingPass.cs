@@ -24,7 +24,6 @@ namespace SRPLearn{
                 _fullScreenMesh = Utils.CreateFullscreenMesh();
             }
             _commandbuffer.Clear();
-            
             _commandbuffer.SetViewProjectionMatrices(Matrix4x4.identity,Matrix4x4.identity);
             _commandbuffer.DrawMesh(_fullScreenMesh,Matrix4x4.identity,_lightPassMat,0,0);
             context.ExecuteCommandBuffer(_commandbuffer);

@@ -52,12 +52,12 @@ Material:
     - _CloudEdgeSoftMax: 0.08
     - _CloudEdgeSoftMin: 0.05
     - _CloudEdgeSoftUnevenTexSize: 0.87
-    - _CloudFill: 0.3542717
+    - _CloudFill: 0.29600933
     - _CloudFillMax: 1.13
     - _CloudFillMin: -1.03
     - _CloudHorizonSoft: 0.093
     - _CloudLightIntensity: 1
-    - _CloudLightRadius: 0.88152564
+    - _CloudLightRadius: 0.8913464
     - _CloudLightRadiusIntensity: 1.8097516
     - _CloudLightUVOffset: 0.01
     - _CloudRimEdgeSoft: 0.409
@@ -75,8 +75,8 @@ Material:
     m_Colors:
     - _BaseColorOverlay: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _BaseShadowedColor: {r: 0, g: 0, b: 0, a: 1}
-    - _CloudColor: {r: 0.2461048, g: 0.45981243, b: 0.61895645, a: 1}
+    - _CloudColor: {r: 0.46027958, g: 0.6132748, b: 0.7272075, a: 1}
     - _CloudLightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _CloudRimColor: {r: 0.54696846, g: 0.64890057, b: 1, a: 1}
+    - _CloudRimColor: {r: 0.6756706, g: 0.7486447, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

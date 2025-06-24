@@ -22,10 +22,13 @@ half _WarpBloom;
 
 
 UNITY_DECLARE_TEX2D(_AOSAShadowTexture);
+UNITY_DECLARE_TEX2D(_AOSASpecularTexture);
 UNITY_DECLARE_TEX2D(_SoftBlurTexture);
 UNITY_DECLARE_TEX2D(_HeavyBlurTexture);
 UNITY_DECLARE_TEX2D(_ScreenWarpTexture);
 UNITY_DECLARE_TEX2D(_XDepthTexture);
+UNITY_DECLARE_TEX2D(_SoftBlurTexture2);
+UNITY_DECLARE_TEX2D(_HeavyBlurTexture2);
 
 SamplerState sampler_point_clamp;
 

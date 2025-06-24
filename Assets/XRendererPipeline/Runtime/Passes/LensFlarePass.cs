@@ -7,7 +7,7 @@ namespace SRPLearn
     public class LensFlarePass
     {
         private CommandBuffer _commandbuffer;
-
+        
         public LensFlarePass()
         {
             _commandbuffer = new CommandBuffer()

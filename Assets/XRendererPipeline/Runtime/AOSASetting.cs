@@ -27,6 +27,9 @@ namespace SRPLearn
         AOSAShadowTexture,
         SoftBlurTexture,
         HeavyBlurTexture,
+        AOSASpecularTexture,
+        SoftBlurColorTexture,
+        HeavyBlurColorTexture,
         ScreenWarpTexture,
         DepthTexture
     }
