@@ -82,13 +82,13 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                 uint tileIndex = tileId.y * _DeferredTileParams.z + tileId.x;
                 uint lightCount = _TileLightsArgsBuffer[tileIndex];
 
-                half3 shadowMap = 0, specularMap = 0;
+                half4 shadowMap = 0, specularMap = 0;
                 float3 viewDirection = normalize(_WorldSpaceCameraPos - positionWS);
                 float shadow = 0, specular = 0;
                 float mainLightAttenuation = GetMainLightShadowAtten(shadeInput.positionWS, shadeInput.normal);
                 GetLighting(viewDirection, shadeInput.normal, shadeInput.smoothness,_XMainLightDirection,mainLightAttenuation,shadow,specular);
-                shadowMap += shadow * _XMainLightColor;
-                specularMap += specular * _XMainLightColor;
+                shadowMap.a += shadow;
+                specularMap.a += specular;
                 
                 uint tileLightOffset = tileIndex * MAX_LIGHT_COUNT_PER_TILE;
                 for(uint i = 0; i < lightCount; i ++){
@@ -99,13 +99,13 @@ Shader "Hidden/SRPLearn/DeferredLightPass"
                     shadow = 0;
                     specular = 0;
                     GetLighting(viewDirection,shadeInput.normal,shadeInput.smoothness,lightDesc.dir,lightDesc.color.r,shadow,specular);    
-                    shadowMap += shadow * lightColor;
-                    specularMap += specular * lightColor;
+                    shadowMap.rgb += shadow * lightColor;
+                    specularMap.rgb += specular * lightColor;
                 }
 
                 Textures output;
-                output.ShadowColorMap = half4(shadowMap,1);
-                output.SpecularColorMap = half4(specularMap,1);
+                output.ShadowColorMap = shadowMap;
+                output.SpecularColorMap = specularMap;
                 return output;
             }
             ENDHLSL

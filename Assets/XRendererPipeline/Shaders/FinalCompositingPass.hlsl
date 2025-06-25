@@ -82,39 +82,54 @@ CompositingOutput CompositingFragment(Varyings input) : SV_Target
     float2 uv = input.uv;
     half3 baseColor = _GBuffer0.Sample(sampler_point_clamp, uv).rgb;
     half3 shadowedColor = _GBuffer2.Sample(sampler_point_clamp, uv,0).rgb;
-    half3 softShadowBlur = _SoftBlurTexture.SampleLevel(sampler_SoftBlurTexture,uv,0);
-    half3 heavyShadowBlur = _HeavyBlurTexture.SampleLevel(sampler_HeavyBlurTexture,uv,0);
-    half3 softSpecularBlur = UNITY_SAMPLE_TEX2D_LOD(_SoftBlurTexture2,uv,0);
-    half3 heavySpecularBlur = UNITY_SAMPLE_TEX2D_LOD(_HeavyBlurTexture2,uv,0);
+    half3 softShadowPointBlur = _SoftBlurTexture.SampleLevel(sampler_SoftBlurTexture,uv,0);
+    half3 heavyShadowPointBlur = _HeavyBlurTexture.SampleLevel(sampler_HeavyBlurTexture,uv,0);
+    half3 softSpecularPointBlur = UNITY_SAMPLE_TEX2D_LOD(_SoftBlurTexture2,uv,0);
+    half3 heavySpecularPointBlur = UNITY_SAMPLE_TEX2D_LOD(_HeavyBlurTexture2,uv,0);
     half breakup = _GBuffer2.Sample(sampler_point_clamp, uv,0).a; //只考虑GBUFFER_ACCURATE_NORMAL
-    
-    half3 specular = step(0.1, Luminance(softSpecularBlur)) * softSpecularBlur;
 
+    half softShadowDirectionalBlur = UNITY_SAMPLE_TEX2D_LOD(_SoftBlurTexture,uv,0).a;
+    half heavyShadowDirectionalBlur = UNITY_SAMPLE_TEX2D_LOD(_HeavyBlurTexture,uv,0).a;
+    half softSpecularDirectionalBlur = UNITY_SAMPLE_TEX2D_LOD(_SoftBlurTexture2,uv,0).a;
+    half heavySpecularDirectionalBlur = UNITY_SAMPLE_TEX2D_LOD(_HeavyBlurTexture2,uv,0).a;
+    
+    half3 specularPoint = step(0.1, Luminance(softSpecularPointBlur)) * softSpecularPointBlur;
+    half3 specularDirectional = step(0.5, softSpecularDirectionalBlur) * _XMainLightColor;
+    
     float stepCount = floor(breakup * _ShadowStepCount + 1.0); 
     float threshold = _ShadowThreshold;
     float thresholdSoftness = breakup * _ShadowThresholdSoftness;
     float innerGlow = _ShadowInnerGlow;
 
-    half thresholdedValue = (Luminance(softShadowBlur) + 0.27 - threshold) / thresholdSoftness;
-    half3 shadow = saturate(floor(thresholdedValue * stepCount) / stepCount) * softShadowBlur;
-    
-    shadow = lerp((1.0 - heavyShadowBlur * innerGlow * 2.0) * shadow,shadow + (1.0 - heavyShadowBlur)* (1-shadow)* innerGlow,0);
+    half thresholdedValuePoint = (Luminance(softShadowPointBlur) + 0.27 - threshold) / thresholdSoftness;
+    half3 shadowPoint = saturate(floor(thresholdedValuePoint * stepCount) / stepCount) * softShadowPointBlur;
 
-    //half3 color = shadow;
+    half thresholdedValueDirectional = (softShadowDirectionalBlur - threshold) / thresholdSoftness;
+    half3 shadowDirectional  =saturate(floor(thresholdedValueDirectional * stepCount) / stepCount) * _XMainLightColor.rgb;
+
+    shadowPoint = (1.0 - heavyShadowPointBlur * innerGlow * 2.0) * shadowPoint;
+    shadowDirectional = shadowDirectional + (1.0 - heavyShadowDirectionalBlur) * (1 - shadowDirectional) *innerGlow;
+    
+    half3 shadow = shadowPoint + shadowDirectional;
+    
+    //half3 color = shadowPoint;
     half3 color = shadowedColor + (baseColor - shadowedColor) * shadow;
     //half3 color = baseColor * shadow + shadowedColor * (1.0 - saturate(max(shadow.r, max(shadow.g, shadow.b))));
 
-    color += specular;
+    color += specularDirectional +specularPoint;
 
     color = lerp(color, baseColor, isSky(input.uv));
 
-    half3 bloom = heavySpecularBlur + 0.5 * softSpecularBlur;
+    half3 bloomPoint = heavySpecularPointBlur + 0.5 * softSpecularPointBlur;
+    half bloomDirectional = heavySpecularDirectionalBlur + 0.5 * softSpecularDirectionalBlur;
 
-    bloom = lerp(bloom, baseColor, isSky(input.uv));
+    half4 bloom = half4(bloomPoint, bloomDirectional);
+    
+    bloom = lerp(bloom, 0, isSky(input.uv));
     
     CompositingOutput output;
     output._CompositingColor = half4(color,1);
-    output._CompositingBloom = half4(bloom,1);
+    output._CompositingBloom = bloom;
     
     return output;
 }
@@ -159,14 +174,15 @@ half4 FinalCompositingFragment(Varyings input) : SV_Target
 
     half3 color = UNITY_SAMPLE_TEX2D_LOD(_CompositingColorTex,warpUV,0).rgb;
     half3 baseColor = color;
-    half3 bloom = lerp(
-                    UNITY_SAMPLE_TEX2D_LOD(_CompositingBloomTex,input.uv,0).rgb,
-                    UNITY_SAMPLE_TEX2D_LOD(_CompositingBloomTex,warpUV,0).rgb,
+    half4 bloom = lerp(
+                    UNITY_SAMPLE_TEX2D_LOD(_CompositingBloomTex,input.uv,0).rgba,
+                    UNITY_SAMPLE_TEX2D_LOD(_CompositingBloomTex,warpUV,0).rgba,
                     _WarpBloom
                     );
     
     //ApplyColoredBlooms(color,bloom);
-    color += bloom;
+    color += bloom.rgb;
+    color += bloom.a * _XMainLightColor;
     
     half4 g3 = _GBuffer3.SampleLevel(sampler_point_clamp,input.uv,0);
     half3 overlay = g3.rgb;

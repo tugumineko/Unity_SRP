@@ -38,8 +38,6 @@ namespace SRPLearn{
         };
         
         private RenderTexture _depthTexture;
-        private RenderTexture _shadowTexture;
-        private RenderTexture _specularTexture;
         private RenderTexture _softBlurTexture;
         private RenderTexture _softBlurTexture2;
         private RenderTexture _heavyBlurTexture;
@@ -223,7 +221,6 @@ namespace SRPLearn{
             //光照剔除
             var deferredTileLightCullingParams = new DeferredTileLightCulling.DeferredTileLightCullingParams(){
                 cameraRenderDescription = cameraDesc,
-                renderTargetIdentifier = _shadowTexture,
                 lightShadeByComputeShader = true
             };
             _deferredLightingCulling.Execute(context,ref deferredTileLightCullingParams);
