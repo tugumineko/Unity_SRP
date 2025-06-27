@@ -149,12 +149,14 @@ public class DynamicSkyCtrl : MonoBehaviour
                 Light.rotation = Quaternion.Euler(0.0f, Longitude, Latitude) *
                                  Quaternion.Euler(Mathf.Lerp(-15f, 195f, sunProgression), 180f, 0f);
                 SkyMat.DisableKeyword("_NIGHT");
+                Shader.SetGlobalFloat(ShaderProperties.IsNight, 0);
             }
             else
             {
                 Light.rotation = Quaternion.Euler(0.0f, Longitude, Latitude) *
                                  Quaternion.Euler(Mathf.Lerp(-15f, 195f, moonProgression), 180f, 0f);
                SkyMat.EnableKeyword("_NIGHT");
+               Shader.SetGlobalFloat(ShaderProperties.IsNight, 1);
             }
             Shader.SetGlobalMatrix(ShaderProperties.MainLightMatrixWorldToLocal, Light.worldToLocalMatrix);
         }
@@ -199,6 +201,8 @@ public class DynamicSkyCtrl : MonoBehaviour
         public static readonly int CloudLightRadiusIntensity = Shader.PropertyToID("_CloudLightRadiusIntensity");
         public static readonly int CloudSSSRadius =  Shader.PropertyToID("_CloudSSSRadius");
         public static readonly int CloudSSSIntensity = Shader.PropertyToID("_CloudSSSIntensity");
+        
+        public static readonly int IsNight = Shader.PropertyToID("_IsNight");
         
         public static readonly int MainLightMatrixWorldToLocal = Shader.PropertyToID("_XMainLightMatrixWorldToLocal");
     }

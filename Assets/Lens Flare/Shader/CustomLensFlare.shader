@@ -37,6 +37,9 @@
 
             half _IsNight;
 
+
+            
+            /*
             //link : https://github.com/Unity-Technologies/FontainebleauDemo/tree/master/Assets/Scripts/LensFlare
             static const uint DEPTH_SAMPLE_COUNT = 32;
             static const float2 samples[DEPTH_SAMPLE_COUNT] = {
@@ -73,6 +76,7 @@
 				float2(-0.542099535465,0.432246923447),
 				float2(-0.106764614582,-0.618209302425)
             };
+            */
 
 			float4 _ZBufferParams;//Unity内置变量
 
@@ -81,7 +85,7 @@
 			    return 1.0 / (zBufferParams.x * rawDepth + zBufferParams.y);
 			}
             
-            float GetOcclusion(float2 screenPos, float depth, float2 radius)
+            /*float GetOcclusion(float2 screenPos, float depth, float2 radius)
             {
 	            float contrib = 0.0f;
             	float sample_Contrib = 1.0 / DEPTH_SAMPLE_COUNT;
@@ -94,8 +98,65 @@
             		contrib += sample_Contrib * step(depth,sampledDepth);
             	}
 				return contrib;
-            }
+            }*/
 
+			float Hash12(float2 p)
+			{
+			    // Hash function to generate rotation offset per-pixel
+			    float3 p3 = frac(float3(p.xyx) * 0.1031);
+			    p3 += dot(p3, p3.yzx + 19.19);
+			    return frac((p3.x + p3.y) * p3.z);
+			}
+
+			float2 Rotate(float2 v, float angle)
+			{
+			    float s = sin(angle);
+			    float c = cos(angle);
+			    return float2(c * v.x - s * v.y, s * v.x + c * v.y);
+			}
+
+			float GetOcclusion(float2 screenPos, float depth, float2 radius)
+			{
+			    const int NUM_RAYS = 6;               // Number of unique directions
+			    const int SAMPLES_PER_RAY = 1;        // Symmetrical samples (each side)
+			    float totalSamples = NUM_RAYS * SAMPLES_PER_RAY * 2;
+
+			    float contrib = 0.0;
+
+			    // Add small randomized rotation to break regularity
+			    float hashAngle = Hash12(screenPos * _ScreenParams.xy) * 6.2831; // [0, 2PI)
+
+			    for (int r = 0; r < NUM_RAYS; r++)
+			    {
+			        // evenly distributed rotation (360° / NUM_RAYS)
+			        float angle = hashAngle + 6.2831 * r / NUM_RAYS;
+			        float2 dir = Rotate(float2(1, 0), angle);
+
+			        for (int j = 1; j <= SAMPLES_PER_RAY; j++)
+			        {
+			            float2 offset = dir * radius * j;
+
+			            float2 posA = screenPos + offset;
+			            float2 posB = screenPos - offset;
+
+			            posA.y *= _ProjectionParams.x;
+			            posB.y *= _ProjectionParams.x;
+
+			            posA = posA * 0.5 + 0.5;
+			            posB = posB * 0.5 + 0.5;
+
+			            float depthA = Linear01Depth(UNITY_SAMPLE_TEX2D_LOD(_XDepthTexture, posA, 0).r, _ZBufferParams);
+			            float depthB = Linear01Depth(UNITY_SAMPLE_TEX2D_LOD(_XDepthTexture, posB, 0).r, _ZBufferParams);
+
+			            contrib += step(depth, depthA);
+			            contrib += step(depth, depthB);
+			        }
+			    }
+
+			    return contrib / totalSamples;
+			}
+
+            
 			half4 Fragment(Varyings input) : SV_Target{
 				float fade = 1 - saturate(distance(input.posNDC, float2(0.0,0.0)) / 1.4); // sqrt(2) => 屏幕(0,0)到(1,1)
 				half4 color = UNITY_SAMPLE_TEX2D(_MainTex,input.uv);
