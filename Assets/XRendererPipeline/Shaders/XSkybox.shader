@@ -115,19 +115,25 @@
 					skyColor = lerp(skyColor, _SunGlowColor, saturate(sunGlow * _SunIntensity));
 					skyColor = lerp(skyColor, sunColor, saturate(sunShape * _SunIntensity));
                 #else
-                    float glowRadius = 1.0 + dot(viewDirectionWS, -_XMainLightDirection.xyz);
+                    //float glowRadius = 1.0 + dot(viewDirectionWS, -_XMainLightDirection.xyz);
                     float lightRange = saturate(dot(viewDirectionWS, _XMainLightDirection.xyz));
-                    float moonGlow = 1.0 / (1 + glowRadius * lerp(150,10,_MoonGlowRadius));
-                    moonGlow *= pow(_MoonGlowRadius,0.5);
+                    //float moonGlow = 1.0 / (1 + glowRadius * lerp(150,10,_MoonGlowRadius));
+                    //moonGlow *= pow(_MoonGlowRadius,0.5);
 
                     //float2 moonUV = (posInLight * _MoonSize).xy + 0.5;
                     float2 moonUV = input.sunAndMoonUV.zw + 0.5;
+
+                    float dist = length(input.sunAndMoonUV.zw);
+                    float s1 = smoothstep(0.24,0.25,dist);
+                    float s2 = smoothstep(0.25,0.26,dist);
+                
                     half4 moonTex = UNITY_SAMPLE_TEX2D(_MoonTex,moonUV);
                     half3 moonColor = moonTex.r * _MoonColor * _MoonIntensity;
                     half moonShape = lightRange * moonTex.a;
                     moonColor *= moonShape;
-                
-                    half3 moonGlowColor = _MoonGlowColor * moonGlow * _MoonIntensity;
+
+                    half3 moonGlowColor = (s1 - s2) * _MoonGlowColor;
+                    //half3 moonGlowColor = _MoonGlowColor * moonGlow * _MoonIntensity;
 
                     float3 positionDir = normalize(input.positionOS);
                     float2 starUV = float2(atan2(positionDir.z,positionDir.x), -acos(positionDir.y)) / float2(6.283185307,3.141592653589);

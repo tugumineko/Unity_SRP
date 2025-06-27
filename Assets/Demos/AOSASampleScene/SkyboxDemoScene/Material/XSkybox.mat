@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _NIGHT
   - _SIMULATIONSUNSHAPE
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -95,22 +96,22 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StarIntensity: 0.09321464
+    - _StarIntensity: 0.45889458
     - _StarReduceValue: 0.1
     - _SunGlowRadius: 0.65401614
-    - _SunIntensity: 0.98885816
+    - _SunIntensity: 0.9768581
     - _SunRadius: 8
     - _SunSize: 6.62
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BottomColor: {r: 1.2120476, g: 1.0911369, b: 1.0289078, a: 1}
+    - _BottomColor: {r: 0.14117648, g: 0.12941177, b: 0.14509805, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _MiddleColor: {r: 0.5883146, g: 0.6454395, b: 0.7732342, a: 1}
-    - _MoonColor: {r: 0.3805833, g: 0.3805833, b: 0.3805833, a: 1}
-    - _MoonGlowColor: {r: 2, g: 2, b: 2, a: 1}
-    - _SunColor: {r: 12.85, g: 12.85, b: 12.85, a: 1}
-    - _SunGlowColor: {r: 1.7874999, g: 1.6909866, b: 1.5517453, a: 1}
-    - _TopColor: {r: 0.8117648, g: 0.7176471, b: 0.69803923, a: 1}
+    - _MiddleColor: {r: 0.093059, g: 0.11193246, b: 0.13286835, a: 1}
+    - _MoonColor: {r: 23.961472, g: 15.6903305, b: 0.32349578, a: 1}
+    - _MoonGlowColor: {r: 0.93962264, g: 0.8624221, b: 0.44499102, a: 1}
+    - _SunColor: {r: 14.2, g: 14.2, b: 14.2, a: 1}
+    - _SunGlowColor: {r: 1.45, g: 1.3948495, b: 1.3152831, a: 1}
+    - _TopColor: {r: 0.20392159, g: 0.18039216, b: 0.21568629, a: 1}
   m_BuildTextureStacks: []
