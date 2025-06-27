@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _srpBatcher: 1
   _shadowSetting:
-    _maxShadowDistance: 103
+    _maxShadowDistance: 37
     _shadowCascadeCount: 4
     _cascadeRatio1: 1
     _cascadeRatio2: 2
     _cascadeRatio3: 4
     _cascadeRatio4: 8
     _enableCSMBlend: 1
-    _cascadeShadowBlendDist: 0.31
+    _cascadeShadowBlendDist: 0.34
     _shadowBiasType: 1
     _shadowAAType: 1
     _debugShadowResolution: 0
@@ -49,12 +49,12 @@ MonoBehaviour:
     warpGlobalScale: 128
     warpGlobalDistanceFade: 0.1
     warpWidth: 0.003
-    softBlurDownsample: 4.28
-    heavyBlurDownsample: 8.25
+    softBlurDownsample: 5.4
+    heavyBlurDownsample: 8.71
     shadowStepCount: 3
-    shadowThreshold: 0.247
-    shadowThresholdSoftness: 0.36
-    shadowInnerGlow: 0.156
+    shadowThreshold: 0.276
+    shadowThresholdSoftness: 0.37
+    shadowInnerGlow: 0.155
     useWarpBloom: 0
   _antiAlias:
     antiAliasType: 0

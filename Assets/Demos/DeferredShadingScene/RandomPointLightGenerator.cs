@@ -2,79 +2,120 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RandomPointLightGenerator : MonoBehaviour
+public class SphericalPointLightGenerator : MonoBehaviour
 {
-    public int lightCount = 100;
+    [Header("Settings")]
+    public int lightCount = 32;
+    public float radius = 3f;
+    public float movementRange = 1f; 
+    public float floatAmplitude = 0.3f;
+    public float floatSpeedMin = 1f;
+    public float floatSpeedMax = 2f;
 
     private List<LightMovement> lightMovements = new List<LightMovement>();
 
-    void Start(){
+    void Start()
+    {
         lightMovements.Clear();
         var root = transform.Find("Root");
-        if(root){
-            foreach(var c in root){
-                var child = c as Transform;
-                var v = Random.value * 5;
-                var rad = Random.value * Mathf.PI * 2;
-                var velocity = new Vector3(Mathf.Cos(rad) * v,0,Mathf.Sin(rad) * v);
-                lightMovements.Add(new LightMovement(){
+        if (root)
+        {
+            foreach (Transform child in root)
+            {
+                var basePos = child.localPosition;
+                var movement = new LightMovement
+                {
                     light = child.GetComponent<Light>(),
-                    velocity = velocity
-                });
+                    basePosition = basePos,
+                    velocity = Random.insideUnitSphere * 0.5f,
+                    floatOffset = Random.Range(0f, Mathf.PI * 2),
+                    floatSpeed = Random.Range(floatSpeedMin, floatSpeedMax)
+                };
+                lightMovements.Add(movement);
             }
-            
         }
     }
 
-    private void Generate(Transform parent){
-        
-        for(var i = 0; i < lightCount; i ++){
+    private void Generate(Transform parent)
+    {
+        // Fibonacci Sphere 均匀球面分布
+        float offset = 2f / lightCount;
+        float increment = Mathf.PI * (3f - Mathf.Sqrt(5f)); // golden angle
+
+        for (int i = 0; i < lightCount; i++)
+        {
+            float y = i * offset - 1f + (offset / 2f);
+            float r = Mathf.Sqrt(1f - y * y);
+            float phi = i * increment;
+
+            float x = Mathf.Cos(phi) * r;
+            float z = Mathf.Sin(phi) * r;
+
+            Vector3 dir = new Vector3(x, y, z);
+            Vector3 pos = dir * radius;
+
             var go = new GameObject("Light_" + i);
             var light = go.AddComponent<Light>();
             light.transform.SetParent(parent);
+            light.transform.localPosition = pos;
+
             light.type = LightType.Point;
-            light.intensity = 5;
-            light.color = Random.ColorHSV(0,1,1,1,1,1);
-            light.range = Random.Range(2.0f,4.0f);
-            light.transform.localPosition = new Vector3(Random.Range(-20f,20f),Random.Range(1f,2f),Random.Range(-20f,20f));
-        
+            light.intensity = 1f;
+            light.range = Random.Range(1.2f, 1.8f);
+            light.color = Random.ColorHSV(0f, 1f, 0.8f, 1f, 0.8f, 1f);
         }
     }
 
     [ContextMenu("Regenerate")]
-    private void Generate(){
+    private void Generate()
+    {
         var root = transform.Find("Root");
-        if(root){
-            if(Application.isPlaying){
-                Object.Destroy(root.gameObject);
-            }else{
-                Object.DestroyImmediate(root.gameObject);
-            }
+        if (root)
+        {
+            if (Application.isPlaying)
+                Destroy(root.gameObject);
+            else
+                DestroyImmediate(root.gameObject);
         }
+
         root = new GameObject("Root").transform;
-        root.SetParent(this.transform,false);
+        root.SetParent(this.transform, false);
         root.localPosition = Vector3.zero;
-        this.Generate(root);
+
+        Generate(root);
     }
-    
-    void Update(){
-        foreach(var m in lightMovements){
-            var pos = m.light.transform.localPosition;
-            pos += m.velocity * Time.deltaTime;
-            if(pos.x < -20 || pos.x > 20 || pos.z < - 20 || pos.z > 20){
-                m.velocity = - m.velocity;
-            }else{
-                m.light.transform.localPosition = pos;
+
+    void Update()
+    {
+        foreach (var m in lightMovements)
+        {
+            Vector3 offset = m.velocity * Time.deltaTime;
+
+            // 限制最大移动范围（与basePosition距离）
+            Vector3 toBase = m.light.transform.localPosition - m.basePosition;
+            if (toBase.magnitude > movementRange)
+            {
+                m.velocity = -m.velocity;
+                offset = m.velocity * Time.deltaTime;
             }
+
+            Vector3 pos = m.light.transform.localPosition;
+            pos += new Vector3(offset.x, offset.y, offset.z);
+
+            // 加上 Y轴浮动（叠加）
+            float yOffset = Mathf.Sin(Time.time * m.floatSpeed + m.floatOffset) * floatAmplitude;
+            pos.y = m.basePosition.y + yOffset;
+
+            m.light.transform.localPosition = pos;
         }
     }
 
-
-    public class  LightMovement
+    public class LightMovement
     {
         public Light light;
+        public Vector3 basePosition;
         public Vector3 velocity;
-
-
+        public float floatOffset;
+        public float floatSpeed;
     }
 }
