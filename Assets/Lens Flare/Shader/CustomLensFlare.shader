@@ -36,8 +36,6 @@
             UNITY_DECLARE_TEX2D(_XDepthTexture);
 
             half _IsNight;
-
-
             
             /*
             //link : https://github.com/Unity-Technologies/FontainebleauDemo/tree/master/Assets/Scripts/LensFlare
@@ -115,6 +113,7 @@
 			    return float2(c * v.x - s * v.y, s * v.x + c * v.y);
 			}
 
+            //link: https://github.com/dillongoostudios/goo-engine/blob/goo-engine-main/source/blender/draw/engines/eevee/shaders/closure_eval_surface_lib.glsl#L497
 			float GetOcclusion(float2 screenPos, float depth, float2 radius)
 			{
 			    const int NUM_RAYS = 6;               // Number of unique directions
@@ -160,7 +159,7 @@
 			half4 Fragment(Varyings input) : SV_Target{
 				float fade = 1 - saturate(distance(input.posNDC, float2(0.0,0.0)) / 1.4); // sqrt(2) => 屏幕(0,0)到(1,1)
 				half4 color = UNITY_SAMPLE_TEX2D(_MainTex,input.uv);
-				return color * input.color * fade * _XMainLightColor * (1 - _IsNight);
+				return color * input.color * fade * pow(_XMainLightColor,0.5) * (1 - _IsNight);
 			}
             
         ENDHLSL 

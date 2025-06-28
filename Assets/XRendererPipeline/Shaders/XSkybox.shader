@@ -132,7 +132,7 @@
                     half moonShape = lightRange * moonTex.a;
                     moonColor *= moonShape;
 
-                    half3 moonGlowColor = (s1 - s2) * _MoonGlowColor;
+                    half3 moonGlowColor = (s1 - s2) * _MoonGlowColor * moonShape;
                     //half3 moonGlowColor = _MoonGlowColor * moonGlow * _MoonIntensity;
 
                     float3 positionDir = normalize(input.positionOS);

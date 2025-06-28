@@ -11,7 +11,10 @@ public class SphericalPointLightGenerator : MonoBehaviour
     public float floatAmplitude = 0.3f;
     public float floatSpeedMin = 1f;
     public float floatSpeedMax = 2f;
-
+    [Header("Color Settings")]
+    public Color baseColorA = new Color(1f, 0.85f, 0.5f); 
+    public Color baseColorB = new Color(0.8f, 0.5f, 0.2f);
+    
     private List<LightMovement> lightMovements = new List<LightMovement>();
 
     void Start()
@@ -62,7 +65,18 @@ public class SphericalPointLightGenerator : MonoBehaviour
             light.type = LightType.Point;
             light.intensity = 1f;
             light.range = Random.Range(1.2f, 1.8f);
-            light.color = Random.ColorHSV(0f, 1f, 0.8f, 1f, 0.8f, 1f);
+            
+            // 在 baseColorA ~ baseColorB 之间做 HSV 插值
+            Color lerped = Color.Lerp(baseColorA, baseColorB, Random.value);
+            Color.RGBToHSV(lerped, out float h, out float s, out float v);
+
+            // 饱和度控制：偏低
+            s = Random.Range(0.15f, 0.5f);
+
+            // 亮度控制：不可太暗
+            v = Random.Range(0.5f, 0.6f);
+
+            light.color = Color.HSVToRGB(h, s, v);
         }
     }
 

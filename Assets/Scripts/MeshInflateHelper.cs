@@ -302,7 +302,6 @@ public static class MeshInflateHelper
             }            
 #endif
             edge = edges[i];
-            edgeNormal = Vector3.zero;
 
             f0Normal = GetSurfaceNormal(vertices[edge.ie0], vertices[edge.ie1], vertices[edge.if0]);
             f1Normal = edge.if1 != null ? GetSurfaceNormal(vertices[edge.ie1], vertices[edge.ie0], vertices[edge.if1.Value]) : null;
