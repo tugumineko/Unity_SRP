@@ -34,7 +34,7 @@ public class ShowInflatedMesh : MonoBehaviour
         // 2. 生成偏移后顶点
         Vector3[] inflatedVertices = new Vector3[vertexCount];
         for (int i = 0; i < vertexCount; i++)
-            inflatedVertices[i] = vertices[i] + uv3[i];
+            inflatedVertices[i] = vertices[i] + uv3[i] * 0.5f;
 
         // 3. 克隆其他数据
         Mesh inflatedMesh = new Mesh();

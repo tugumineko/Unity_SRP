@@ -87,7 +87,7 @@ Material:
     - _Metallic: 0
     - _MiddleHeight: 0.155
     - _Mode: 0
-    - _MoonGlowRadius: 0.108452335
+    - _MoonGlowRadius: 0.107156865
     - _MoonIntensity: 0.40161368
     - _MoonSize: 5
     - _OcclusionStrength: 1
@@ -96,22 +96,22 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _StarIntensity: 0.45889458
+    - _StarIntensity: 0.71319354
     - _StarReduceValue: 0.1
     - _SunGlowRadius: 0.65401614
-    - _SunIntensity: 0.9768581
+    - _SunIntensity: 0.9547597
     - _SunRadius: 8
     - _SunSize: 6.62
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BottomColor: {r: 0.14117648, g: 0.12941177, b: 0.14509805, a: 1}
+    - _BottomColor: {r: 0.15686275, g: 0.15686275, b: 0.19215688, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _MiddleColor: {r: 0.093059, g: 0.11193246, b: 0.13286835, a: 1}
-    - _MoonColor: {r: 23.961472, g: 15.6903305, b: 0.32349578, a: 1}
+    - _MiddleColor: {r: 0.09344964, g: 0.111475036, b: 0.13207549, a: 1}
+    - _MoonColor: {r: 157.5865, g: 102.44552, b: 0, a: 1}
     - _MoonGlowColor: {r: 0.93962264, g: 0.8624221, b: 0.44499102, a: 1}
-    - _SunColor: {r: 14.2, g: 14.2, b: 14.2, a: 1}
-    - _SunGlowColor: {r: 1.45, g: 1.3948495, b: 1.3152831, a: 1}
-    - _TopColor: {r: 0.20392159, g: 0.18039216, b: 0.21568629, a: 1}
+    - _SunColor: {r: 4, g: 4, b: 4, a: 1}
+    - _SunGlowColor: {r: 4, g: 3.63233, b: 3.1018867, a: 1}
+    - _TopColor: {r: 0.06666667, g: 0.06666667, b: 0.11764707, a: 1}
   m_BuildTextureStacks: []

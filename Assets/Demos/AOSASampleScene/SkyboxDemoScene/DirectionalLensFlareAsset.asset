@@ -15,13 +15,13 @@ MonoBehaviour:
   FlareAtlasTexture: {fileID: 2800000, guid: 269c22533ee907c4e8cf1dd2e6bd401d, type: 3}
   FlareTexLayout: 2
   FlareDatas:
-  - AutoRotation: 1
-    Rotation: 200
+  - AutoRotation: 0
+    Rotation: 178
     AtlasIndex: 7
-    FlareScale: 0.69
-    FlareOffset: 0.06
-    OcclusionScale: 0.642
-    FlareColor: {r: 0.7735849, g: 0.6890035, b: 0.2787825, a: 0}
+    FlareScale: 0.64
+    FlareOffset: 0.13
+    OcclusionScale: 0.618
+    FlareColor: {r: 0.5396226, g: 0.5011024, b: 0.3085012, a: 0}
   - AutoRotation: 1
     Rotation: 149
     AtlasIndex: 0

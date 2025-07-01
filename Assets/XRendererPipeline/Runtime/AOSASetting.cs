@@ -5,9 +5,9 @@ namespace SRPLearn
     public enum AnimatedLineBoilFramerateType
     {
         Off = 0,
-        FPS_24,
-        FPS_12,
+        Realtime,
         FPS_8,
+        FPS_4,
     };
     
     public enum OrientType

@@ -40,9 +40,9 @@ namespace SRPLearn
         {
             float t = (float)(Time.realtimeSinceStartupAsDouble % 3600.0);
             Vector4 lineBoilTime = new Vector4(0,//Off
-                                            Mathf.Floor(t * 24)/24,//24fps
-                                            Mathf.Floor(t * 12)/12,//12fps
-                                            Mathf.Floor(t * 8)/8);//8fps
+                                            t,//Realtime
+                                            Mathf.Floor(t * 8)/8,//8fps
+                                            Mathf.Floor(t * 4)/4);//4fps
             commandBuffer.SetGlobalVector(ShaderProperties.LineBoilTime,lineBoilTime);
             commandBuffer.SetGlobalTexture(ShaderProperties.WarpTexture,setting.warpTexture);
             commandBuffer.SetGlobalVector(ShaderProperties.WarpParams,new Vector4(setting.warpWidth,setting.warpGlobalScale,setting.warpGlobalDistanceFade,(int)setting.animatedLineBoilFramerate));

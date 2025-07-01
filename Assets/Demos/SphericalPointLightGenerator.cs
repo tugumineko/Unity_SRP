@@ -11,14 +11,22 @@ public class SphericalPointLightGenerator : MonoBehaviour
     public float floatAmplitude = 0.3f;
     public float floatSpeedMin = 1f;
     public float floatSpeedMax = 2f;
+    public float expandDistance = 0.5f;
     [Header("Color Settings")]
     public Color baseColorA = new Color(1f, 0.85f, 0.5f); 
     public Color baseColorB = new Color(0.8f, 0.5f, 0.2f);
+    [Header("Reference Nodes")] 
+    public GameObject DynamicSkyCtrl;
     
     private List<LightMovement> lightMovements = new List<LightMovement>();
-
+    private TimeCtrl timeCtrl;
+    
     void Start()
     {
+        if (timeCtrl == null)
+        {
+            timeCtrl = DynamicSkyCtrl.GetComponent<TimeCtrl>(); 
+        }
         lightMovements.Clear();
         var root = transform.Find("Root");
         if (root)
@@ -71,10 +79,10 @@ public class SphericalPointLightGenerator : MonoBehaviour
             Color.RGBToHSV(lerped, out float h, out float s, out float v);
 
             // 饱和度控制：偏低
-            s = Random.Range(0.15f, 0.5f);
+            s = Random.Range(0.4f, 0.6f);
 
             // 亮度控制：不可太暗
-            v = Random.Range(0.5f, 0.6f);
+            v = Random.Range(0.6f, 0.8f);
 
             light.color = Color.HSVToRGB(h, s, v);
         }
@@ -83,6 +91,10 @@ public class SphericalPointLightGenerator : MonoBehaviour
     [ContextMenu("Regenerate")]
     private void Generate()
     {
+        if (timeCtrl != null)
+        {
+            timeCtrl = DynamicSkyCtrl.GetComponent<TimeCtrl>(); 
+        }
         var root = transform.Find("Root");
         if (root)
         {
@@ -101,6 +113,19 @@ public class SphericalPointLightGenerator : MonoBehaviour
 
     void Update()
     {
+        if (!timeCtrl)
+            return;
+
+        float timeOfDay = timeCtrl.TimeofDay;
+        float dayEndTime = timeCtrl.DayStartTime + timeCtrl.DayDuration;
+
+        float fadeStart = dayEndTime - 1f;
+        float fadeEnd = dayEndTime + 1f;
+
+        bool inTransition = timeOfDay >= fadeStart && timeOfDay <= fadeEnd;
+        float fadeT = inTransition ? Mathf.InverseLerp(fadeStart, fadeEnd, timeOfDay) : 0f;
+        
+
         foreach (var m in lightMovements)
         {
             Vector3 offset = m.velocity * Time.deltaTime;
@@ -120,9 +145,23 @@ public class SphericalPointLightGenerator : MonoBehaviour
             float yOffset = Mathf.Sin(Time.time * m.floatSpeed + m.floatOffset) * floatAmplitude;
             pos.y = m.basePosition.y + yOffset;
 
+            // 扩散位置：离开base位置，向外偏移
+            if (inTransition)
+            {
+                // 曲线加速（慢到快）：可调换成 Mathf.SmoothStep 或其他函数
+                float expandT = Mathf.Pow(fadeT,5);
+
+                Vector3 dir = (m.basePosition).normalized;
+                pos += dir * (expandDistance * expandT); // 2f 是最大扩散距离，可调
+            }
+
             m.light.transform.localPosition = pos;
+
+            // 强度渐变
+            m.light.intensity = inTransition ? Mathf.Lerp(1f, 0f, fadeT) : 0f;
         }
     }
+
 
     public class LightMovement
     {

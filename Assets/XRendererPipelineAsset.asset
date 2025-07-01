@@ -49,12 +49,12 @@ MonoBehaviour:
     warpGlobalScale: 128
     warpGlobalDistanceFade: 0.1
     warpWidth: 0.003
-    softBlurDownsample: 5.4
-    heavyBlurDownsample: 8.71
+    softBlurDownsample: 4.1
+    heavyBlurDownsample: 9.24
     shadowStepCount: 3
-    shadowThreshold: 0.276
-    shadowThresholdSoftness: 0.37
-    shadowInnerGlow: 0.155
+    shadowThreshold: 0.254
+    shadowThresholdSoftness: 0.353
+    shadowInnerGlow: 0.263
     useWarpBloom: 0
   _antiAlias:
     antiAliasType: 0
