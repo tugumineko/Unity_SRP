@@ -21,6 +21,7 @@ namespace SRPLearn{
         private WarpPass _warpPass = new WarpPass();
         private FinalCompositingPass _finalPass = new FinalCompositingPass();
         private LensFlarePass _lensFlarePass = new LensFlarePass();
+        private EditorOutlinePass _editorOutlinePass = new EditorOutlinePass();
         
         private List<RenderTexture> _GBuffers = new List<RenderTexture>();
         private RenderTargetIdentifier[] _GBufferRTIs;
@@ -208,6 +209,10 @@ namespace SRPLearn{
             var cameraDesc = Utils.GetCameraRenderDescription(camera,_setting);
             this.ConfigMRT(context,ref cameraDesc);
             
+#if UNITY_EDITOR
+            if(camera.cameraType == CameraType.SceneView) 
+                _editorOutlinePass.Execute(context);
+#endif            
             //渲染非透明物体
             _opaquePass.Execute(context,camera,ref cullingResults);
             
@@ -271,7 +276,10 @@ namespace SRPLearn{
                 PresentTextureToScreen(context, _colorTexture);
             }
             
+            
             #if UNITY_EDITOR
+            if(camera.cameraType == CameraType.SceneView) 
+                _editorOutlinePass.Execute(context);
             if(camera.cameraType == CameraType.SceneView && UnityEditor.Handles.ShouldRenderGizmos()){
                 context.DrawGizmos(camera,GizmoSubset.PostImageEffects);
             }
