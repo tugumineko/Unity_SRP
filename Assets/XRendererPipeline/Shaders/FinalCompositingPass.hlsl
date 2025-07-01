@@ -189,7 +189,8 @@ half4 FinalCompositingFragment(Varyings input) : SV_Target
     half saturation = g3.a;
     
     // Overlay
-    color = lerp(color, BlendMode_Overlay(color, overlay), 0);
+    float skipOverlay = step(half3(0.5, 0.5, 0.5),overlay);
+    color = lerp(color, BlendMode_Overlay(color, overlay), skipOverlay);
 
     // Saturation
     color = Saturation(color, saturation);
