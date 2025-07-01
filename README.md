@@ -3,11 +3,9 @@
 本项目基于 [wlgys8/SRPLearn](https://github.com/wlgys8/SRPLearn) 仓库扩展而来。  
 原项目旨在使用 Unity 可编程渲染管线（Scriptable Render Pipeline）从零构建渲染器，适合边做边学。
 
-我在原项目基础上进行了一些改动和实验，并且增加了我自己的一些实验性的美术效果。
+我在原项目基础上进行了一些改动和实验，并且尝试增加我自己的一些实验性的美术效果。
 
 Unity版本: 2022.3.53
-
-> ⚠️ 本项目为个人学习与实验用途，非正式生产方案，建议配合原仓库学习参考。
 
 ---
 
@@ -15,7 +13,12 @@ Unity版本: 2022.3.53
 
 - Age-Of-Sail-Deferred-Rendering-Pipeline
   - 参考论文:  [Real-time non-photorealistic animation for immersive storytelling in “Age of Sail”](https://www.sciencedirect.com/science/article/pii/S2590148619300123#sec0015)
-- Dynamic Sky based on c# script   
+- Procedural Skybox and Dynamic Sky Ctrl
+- Custom Lens Flare
+- Mesh Import Check and Inflated Smooth Normal Tool     
+- A Simple Scene
+
+![Scene](./img/background.png)
 
 ---
 
