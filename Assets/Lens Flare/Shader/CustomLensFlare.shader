@@ -34,7 +34,8 @@
 
             UNITY_DECLARE_TEX2D(_MainTex);
             UNITY_DECLARE_TEX2D(_XDepthTexture);
-
+			UNITY_DECLARE_TEX2D(_OcclusionRT);
+            
             half _IsNight;
             
             /*
@@ -182,24 +183,13 @@
 			Varyings Vertex(Attributes input)
 			{
 				Varyings output;
-				float2 sunPosNDC;
-				float sunDepth;
-				float clipRadius;
 
 				float3 sunPosWS = TransformObjectToWorld(float3(0,0,0)); //挂在灯光下，所以是自然的灯光空间
-				float3 sunPosVS = TransformWorldToView(sunPosWS);
 				float4 sunPosCS = TransformWorldToHClip(sunPosWS);
-				sunDepth = sunPosCS.w * _ProjectionParams.w; // trick : 线性深度到 0 - 1
-				sunPosNDC = sunPosCS.xy / sunPosCS.w;  // NDC [-1,1]
-				float4 sunRadiusCS = TransformWorldToHClip(sunPosWS + float3(0,1,0) * input.lensFlareData1.x);
-				float2 sunRadiusNDC = sunRadiusCS.xy / sunRadiusCS.w;
-				clipRadius = distance(sunPosNDC,sunRadiusNDC);
+				float2 sunPosNDC = sunPosCS.xy / sunPosCS.w;  // NDC [-1,1]
 
 				float ratio = _ScreenParams.x / _ScreenParams.y; //screenWidth/screenHeight
-				float occlusion = GetOcclusion(sunPosNDC, sunDepth - input.lensFlareData1.x * _ProjectionParams.w, clipRadius * float2(1/ratio,1));
-				float maxSunPosNDC = saturate(max(abs(sunPosNDC.x),abs(sunPosNDC.y)));
-				occlusion *= (1 - saturate(maxSunPosNDC - 0.85) / 0.15);
-				occlusion *= step(sunPosVS.z,0);
+				float occlusion = UNITY_SAMPLE_TEX2D_LOD(_OcclusionRT,float2(0.5,0.5),0);
 
 				float angle = input.lensFlareData0.y;
 				if (angle < 0)
@@ -208,7 +198,7 @@
 					#if UNITY_UV_STARTS_AT_TOP
 					angle = atan2(dir.y,dir.x) + HALF_PI;
 					#else
-					angle = atan2(dir.y,dir.x) 
+					angle = atan2(dir.y,dir.x) - HALF_PI;
 					#endif
 				}
 
@@ -248,21 +238,13 @@
 			Varyings Vertex(Attributes input)
 			{
 				Varyings output;
-				float2 sunPosNDC;
-				float sunDepth;
-				float clipRadius;
 
 				float3 sunPosVS = mul((float3x3)_CameraMatrixV, _XMainLightDirection);
 				float4 sunPosCS = mul(unity_MatrixP,float4(sunPosVS,1));
-				sunDepth = 0.999;
-				sunPosNDC  = sunPosCS.xy / sunPosCS.w;
-				clipRadius = input.lensFlareData1.x;
+				float2 sunPosNDC  = sunPosCS.xy / sunPosCS.w;
 
 				float ratio = _ScreenParams.x / _ScreenParams.y;
-				float occlusion = GetOcclusion(sunPosCS, sunDepth - input.lensFlareData1.x, clipRadius * float2(1/ratio,1));
-				float maxSunPosNDC = saturate(max(abs(sunPosNDC.x),abs(sunPosNDC.y)));
-				occlusion *= (1 - saturate(maxSunPosNDC - 0.85) / 0.15);
-				occlusion *= step(sunPosVS.z,0);
+				float occlusion = UNITY_SAMPLE_TEX2D_LOD(_OcclusionRT,float2(0.5,0.5),0);
 
 				float angle = input.lensFlareData0.y;
 				if (angle < 0)
@@ -287,7 +269,6 @@
 				output.positionCS.w = 1;
 				output.uv = input.uv;
 				output.color  =input.color * occlusion;
-				output.color = occlusion;
 				output.posNDC = output.positionCS.xy;
 				return output;
 			}

@@ -82,6 +82,7 @@ Shader "SRPLearn/AOSA"
         
         Name "Warp"
 
+        ColorMask RG 
 
         HLSLPROGRAM
 

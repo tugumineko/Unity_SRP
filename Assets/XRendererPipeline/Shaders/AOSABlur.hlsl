@@ -33,10 +33,12 @@ Varyings DefaultVertex(Attributes input)
 
 float4 BoxSample(Texture2D source, float2 uv, float4 offset)
 {
-    return (source.SampleLevel(sampler_BlurBlitTex, uv + offset.zw,0) +
-     source.SampleLevel(sampler_BlurBlitTex, uv + offset.zy,0) +
-     source.SampleLevel(sampler_BlurBlitTex, uv + offset.xw,0) +
-     source.SampleLevel(sampler_BlurBlitTex, uv + offset.xy,0)) * 0.25;
+    float4 s = 0;
+    s = source.SampleLevel(sampler_BlurBlitTex, uv + offset.xy,0)* 0.25;  // 1 MUL
+    s += source.SampleLevel(sampler_BlurBlitTex, uv + offset.zy,0)* 0.25; // 1 MAD
+    s += source.SampleLevel(sampler_BlurBlitTex, uv + offset.xw,0)* 0.25; // 1 MAD 
+    s += source.SampleLevel(sampler_BlurBlitTex, uv + offset.zw,0)* 0.25; // 1 MAD
+    return s;
 }
 
 half4 DownSampleFragment(Varyings input): SV_Target{

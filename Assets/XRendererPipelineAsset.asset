@@ -43,18 +43,18 @@ MonoBehaviour:
     compensateRadialAngle: 1
     compensateSkew: 1
     compensateDistance: 1
-    animatedLineBoilFramerate: 0
+    animatedLineBoilFramerate: 3
     orientation: 1
     warpTexture: {fileID: 2800000, guid: fbfe740b684d673449a5bdf7cef8c763, type: 3}
     warpGlobalScale: 128
     warpGlobalDistanceFade: 0.1
     warpWidth: 0.003
-    softBlurDownsample: 4.1
-    heavyBlurDownsample: 9.24
+    softBlurDownsample: 4.3
+    heavyBlurDownsample: 8.73
     shadowStepCount: 3
     shadowThreshold: 0.254
     shadowThresholdSoftness: 0.353
-    shadowInnerGlow: 0.263
+    shadowInnerGlow: 0.163
     useWarpBloom: 0
   _antiAlias:
     antiAliasType: 0
