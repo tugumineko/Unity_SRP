@@ -7,7 +7,7 @@
 
 void Inflate(inout float4 positionCS, in float2 normalCS, in float offsetDistance, in float distanceFromCamera)
 {
-    float2 offset = normalize(normalCS.xy) / float2((_ScreenParams.y/ _ScreenParams.x),1.0) * positionCS.w * offsetDistance;
+    float2 offset = normalize(normalCS.xy) * float2((_ScreenParams.y/ _ScreenParams.x),1.0) * positionCS.w * offsetDistance;
     #if _COMPENSATE_DISTANCE
         offset *= CompensateDistance(1.0,distanceFromCamera * _WarpGlobalDistanceFade * _WarpDistanceFadeMultiplier);
     #endif
@@ -31,8 +31,8 @@ WarpVaryings WarpPassVertex ( WarpAttributes input)
     //It is inflated, so it can't be normalized
     float3 normalInflatedWS = mul(input.normalInflatedOS, (float3x3)unity_WorldToObject);
     float3 normalInflatedVS = mul(normalInflatedWS, (float3x3)unity_MatrixInvV);
-    float2 normalInflatedCS = mul((float2x2)unity_MatrixP,normalInflatedVS);
-    Inflate(output.positionCS, normalInflatedCS, _WarpWidth * _WarpWidthMultiplier, distanceFromCamera);
+    float3 normalInflatedCS = mul((float3x3)unity_MatrixP,normalInflatedVS);
+    Inflate(output.positionCS, normalInflatedCS.xy, _WarpWidth * _WarpWidthMultiplier, distanceFromCamera);
 
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
     
