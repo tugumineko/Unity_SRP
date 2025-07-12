@@ -7,6 +7,7 @@ namespace SRPLearn
     public class WarpPass
     {
         private RenderTargetIdentifier _target;
+        private RenderTargetIdentifier _depthTexture;
         private CommandBuffer _commandBuffer;
 
         public WarpPass()

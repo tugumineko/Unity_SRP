@@ -45,10 +45,16 @@
         #include "../ShaderLibrary/Tonemapping.hlsl"
         #include "../ShaderLibrary/MathFunction.hlsl"
         ENDHLSL 
-        
+
         Pass
         {
             Name "XSkybox"
+            
+            Stencil {
+                Ref 0
+                Comp Equal
+                Pass Keep
+            }
             
             HLSLPROGRAM
 

@@ -21,7 +21,7 @@ namespace SRPLearn{
         private WarpPass _warpPass = new WarpPass();
         private FinalCompositingPass _finalPass = new FinalCompositingPass();
         private LensFlarePass _lensFlarePass = new LensFlarePass();
-        private EditorOutlinePass _editorOutlinePass = new EditorOutlinePass();
+        private SelectionOutlinePass _selectionOutlinePass = new SelectionOutlinePass();
         
         private List<RenderTexture> _GBuffers = new List<RenderTexture>();
         private RenderTargetIdentifier[] _GBufferRTIs;
@@ -37,8 +37,9 @@ namespace SRPLearn{
             RenderTextureFormat.ARGB32,
             RenderTextureFormat.ARGB32
         };
-        
+
         private RenderTexture _depthTexture;
+        private RenderTexture _skyTexture;
         private RenderTexture _softBlurTexture;
         private RenderTexture _softBlurTexture2;
         private RenderTexture _heavyBlurTexture;
@@ -211,10 +212,22 @@ namespace SRPLearn{
             
 #if UNITY_EDITOR
             if(camera.cameraType == CameraType.SceneView) 
-                _editorOutlinePass.Execute(context);
+                _selectionOutlinePass.Execute(context);
 #endif            
             //渲染非透明物体
             _opaquePass.Execute(context,camera,ref cullingResults);
+            
+            //渲染天空
+            if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null)
+            {
+                _commandbuffer.Clear();
+                AcquireARGB32TextureIfNot(context,camera,ShaderConstants.CameraSkyTexture,ref _skyTexture);
+                _commandbuffer.SetRenderTarget(_skyTexture,_depthTexture);
+                _commandbuffer.ClearRenderTarget(false,true, Color.black);
+                context.ExecuteCommandBuffer(_commandbuffer);
+                context.DrawSkybox(camera);
+            }
+            DrawCloudMesh(context, camera, ref cullingResults);            
             
             AOSASetting setting = _setting.aosaSetting;
 
@@ -278,8 +291,11 @@ namespace SRPLearn{
             
             
             #if UNITY_EDITOR
-            if(camera.cameraType == CameraType.SceneView) 
-                _editorOutlinePass.Execute(context);
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                _selectionOutlinePass.Execute(context);
+            }
+
             if(camera.cameraType == CameraType.SceneView && UnityEditor.Handles.ShouldRenderGizmos()){
                 context.DrawGizmos(camera,GizmoSubset.PostImageEffects);
             }
@@ -330,7 +346,7 @@ namespace SRPLearn{
                 }
             }
             if(!_depthTexture){
-                RenderTextureDescriptor depthDesc = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight,RenderTextureFormat.Depth,32,1);
+                RenderTextureDescriptor depthDesc = new RenderTextureDescriptor(camera.pixelWidth,camera.pixelHeight,RenderTextureFormat.Depth,24,1);
                 _depthTexture = RenderTexture.GetTemporary(depthDesc);
                 _depthTexture.Create();
                 _commandbuffer.Clear();
@@ -397,10 +413,28 @@ namespace SRPLearn{
             this.AcquireDepthTextureIfNot(context,cameraRenderDescription.camera);
             _commandbuffer.Clear();
             _commandbuffer.SetRenderTarget(_GBufferRTIs,_depthTexture);
-            _commandbuffer.ClearRenderTarget(true,true,cameraRenderDescription.camera.backgroundColor);
+            _commandbuffer.ClearRenderTarget(true,true, Color.black);
             context.ExecuteCommandBuffer(_commandbuffer);
         }
 
+        private void DrawCloudMesh(ScriptableRenderContext context, Camera camera, ref CullingResults cullingResults,bool perObjectLight = false)
+        {
+            var sortingSettings = new SortingSettings(camera)
+            {
+                criteria = SortingCriteria.None,
+            };
+            var drawingSetting = new DrawingSettings(new ShaderTagId("CloudPass"), sortingSettings)
+            {
+                perObjectData = perObjectLight
+                    ? PerObjectData.LightData | PerObjectData.LightIndices
+                    : PerObjectData.None
+            };
+            
+            var fiteringSettings  =  new FilteringSettings(RenderQueueRange.transparent, layerMask : LayerMask.GetMask("Cloud"));
+            
+            context.DrawRenderers(cullingResults,ref drawingSetting,ref fiteringSettings);
+        }
+        
         private void OnCameraRenderingEnd(ScriptableRenderContext context){
             
         }
@@ -413,9 +447,13 @@ namespace SRPLearn{
             _deferredLightingCulling.Dispose();
             this.ReleaseGBuffers();
             this.ReleaseDepthTexture();
+            this.ReleaseARGB32Texture(ref _skyTexture);
             this.ReleaseAOSATextures();
             this.ReleaseARGB32Texture(ref _softBlurTexture);
+            this.ReleaseARGB32Texture(ref _softBlurTexture2);
             this.ReleaseARGB32Texture(ref _heavyBlurTexture);
+            this.ReleaseARGB32Texture(ref _heavyBlurTexture2);
+            this.ReleaseARGB32Texture(ref _colorTexture);
             this.ReleaseWarpTexture();
         }
 
@@ -437,6 +475,7 @@ namespace SRPLearn{
             public static readonly int ScreenWarpTexture = Shader.PropertyToID("_ScreenWarpTexture");
             
             public static readonly int CameraDepthTexture = Shader.PropertyToID("_XDepthTexture");
+            public static readonly int CameraSkyTexture = Shader.PropertyToID("_SkyTexture");
             public static readonly int DeferredDebugMode = Shader.PropertyToID("_DeferredDebugMode");
 
             public static readonly int TileCullingIntersectAlgroThreshold = Shader.PropertyToID("_TileCullingIntersectAlgroThreshold");
@@ -505,6 +544,9 @@ namespace SRPLearn{
                     break;
                 case 12:
                     PresentTextureToScreen(context, _depthTexture);
+                    break;
+                case 13:
+                    PresentTextureToScreen(context, _skyTexture);
                     break;
             }
         }

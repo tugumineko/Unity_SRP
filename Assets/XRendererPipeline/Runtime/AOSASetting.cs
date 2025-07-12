@@ -31,7 +31,8 @@ namespace SRPLearn
         SoftBlurColorTexture,
         HeavyBlurColorTexture,
         ScreenWarpTexture,
-        DepthTexture
+        DepthTexture,
+        SkyTexture
     }
     
     [System.Serializable]

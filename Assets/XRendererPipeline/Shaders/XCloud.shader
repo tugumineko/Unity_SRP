@@ -48,6 +48,12 @@
             
             Tags{"LightMode" = "CloudPass"}
             
+            Stencil {
+                Ref 0
+                Comp Equal
+                Pass Keep
+            }
+            
             HLSLPROGRAM
 
             #pragma enable_cbuffer

@@ -49,7 +49,7 @@ namespace SRPLearn
 
             // Set MRT with dummy depth
             _commandBuffer.SetRenderTarget(_mrt, BuiltinRenderTextureType.None);
-            _commandBuffer.ClearRenderTarget(false, true, Color.clear);
+            _commandBuffer.ClearRenderTarget(false, true, Color.black);
 
             // Setup global parameters
             Vector4 finalShadowParams = new Vector4(setting.shadowStepCount, setting.shadowThreshold,
