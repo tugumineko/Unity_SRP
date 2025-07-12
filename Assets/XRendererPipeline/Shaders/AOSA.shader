@@ -57,7 +57,7 @@ Shader "SRPLearn/AOSA"
 
     Pass
     {
-        Tags {"LightMode" = "Deferred"}
+        Tags {"LightMode" = "AOSADeferred"}
         
         Name "DEFERRED"
         

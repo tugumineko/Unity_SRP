@@ -11,7 +11,7 @@ namespace SRPLearn{
 
     public class DeferredRP : BaseRP
     {
-        private const string LightModeId = "Deferred";
+        private const string LightModeId = "AOSADeferred";
         private RenderObjectPass _opaquePass = new RenderObjectPass(false,LightModeId,false);
        
         private ShadowCasterPass _shadowCastPass = new ShadowCasterPass();
