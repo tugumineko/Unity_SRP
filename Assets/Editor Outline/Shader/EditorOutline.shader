@@ -33,13 +33,17 @@ Shader "Hidden/SRPLearn/EditorOutline"
             {
                 Varyings output;
                 float3 positionWS = TransformObjectToWorld(input.positionOS);
+                float3 positionVS = TransformWorldToView(positionWS);
                 float4 positionCS = TransformWorldToHClip(positionWS);
                 
                 //It is inflated, so it can't be normalized
                 float3 normalInflatedWS = mul(input.normalInflatedOS, (float3x3)unity_WorldToObject);
                 float3 normalInflatedVS = mul(normalInflatedWS, (float3x3)unity_MatrixInvV);
-                float2 normalInflatedCS = mul((float2x2)unity_MatrixP,normalInflatedVS);
-                float2 offset = normalize(normalInflatedCS.xy) / float2((_ScreenParams.y/ _ScreenParams.x),1.0) * positionCS.w * OFFSET_DISTANCE;
+                float3 normalInflatedCS = mul((float3x3)unity_MatrixP,normalInflatedVS);
+                float2 offset = normalize(normalInflatedCS.xy) * float2((_ScreenParams.y/ _ScreenParams.x),1.0) * positionCS.w * OFFSET_DISTANCE;
+
+                float distanceFromCamera = length(positionVS) * 0.01;
+                offset *= saturate(1.0 / (1.0 + distanceFromCamera * distanceFromCamera));
                 
                 positionCS.xy += offset;
                 output.positionCS = positionCS;

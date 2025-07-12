@@ -54,7 +54,6 @@ Shader "SRPLearn/AOSA"
             ENDHLSL 
         }
     
-
     Pass
     {
         Tags {"LightMode" = "AOSADeferred"}
@@ -62,6 +61,14 @@ Shader "SRPLearn/AOSA"
         Name "DEFERRED"
         
         Cull Back
+        
+        ZWrite On
+        ColorMask RGBA 
+        Stencil {
+            Ref 1
+            Comp Always
+            Pass Replace
+        }
         
         HLSLPROGRAM
 

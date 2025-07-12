@@ -28,7 +28,7 @@ MonoBehaviour:
     FlareScale: 0.29
     FlareOffset: -0.88
     OcclusionScale: 0.653
-    FlareColor: {r: 0.5342939, g: 1, b: 0, a: 0}
+    FlareColor: {r: 0.50723666, g: 0.8037735, b: 0.16833748, a: 0}
   - AutoRotation: 1
     Rotation: 192
     AtlasIndex: 4
@@ -42,7 +42,7 @@ MonoBehaviour:
     FlareScale: 0.15
     FlareOffset: -0.8
     OcclusionScale: 0.565
-    FlareColor: {r: 0.079494394, g: 0.7660377, b: 0.69735366, a: 0}
+    FlareColor: {r: 0.4103168, g: 0.5396226, b: 0.52706146, a: 0}
   - AutoRotation: 1
     Rotation: 192
     AtlasIndex: 8

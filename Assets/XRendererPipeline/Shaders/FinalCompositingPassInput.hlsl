@@ -29,6 +29,7 @@ UNITY_DECLARE_TEX2D(_ScreenWarpTexture);
 UNITY_DECLARE_TEX2D(_XDepthTexture);
 UNITY_DECLARE_TEX2D(_SoftBlurTexture2);
 UNITY_DECLARE_TEX2D(_HeavyBlurTexture2);
+UNITY_DECLARE_TEX2D(_SkyTexture);
 
 SamplerState sampler_point_clamp;
 

@@ -53,8 +53,8 @@ MonoBehaviour:
     heavyBlurDownsample: 8.73
     shadowStepCount: 3
     shadowThreshold: 0.254
-    shadowThresholdSoftness: 0.353
-    shadowInnerGlow: 0.163
+    shadowThresholdSoftness: 0.334
+    shadowInnerGlow: 0.224
     useWarpBloom: 0
   _antiAlias:
     antiAliasType: 0

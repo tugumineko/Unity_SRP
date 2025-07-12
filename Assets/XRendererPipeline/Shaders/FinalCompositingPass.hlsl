@@ -55,17 +55,6 @@ half3 ApplyColoredShadows(in half3 shadowedColor, in half3 baseColor, in half2 s
     return color;
 }
 
-float isSky(float2 uv)
-{
-    half depth;
-    #if UNITY_REVERSED_Z
-    depth = 1 - _XDepthTexture.SampleLevel(sampler_XDepthTexture,uv,0);
-    #else
-    depth = _XDepthTexture.SampleLevel(sampler_XDepthTexture,uv,0);
-    #endif
-    return step(0.999,depth);
-}
-
 struct CompositingOutput
 {
     half4 _CompositingColor : SV_Target0;
@@ -118,14 +107,18 @@ CompositingOutput CompositingFragment(Varyings input) : SV_Target
 
     color += specularDirectional +specularPoint;
 
-    color = lerp(color, baseColor, isSky(input.uv));
-
+    half3 skyColor = UNITY_SAMPLE_TEX2D_LOD(_SkyTexture,uv,0).rgb;
+    
+    half isSky = step(0.001,skyColor);
+    
+    color = lerp(color,skyColor, isSky);
+    
     half3 bloomPoint = heavySpecularPointBlur + 0.5 * softSpecularPointBlur;
     half bloomDirectional = heavySpecularDirectionalBlur + 0.5 * softSpecularDirectionalBlur;
 
     half4 bloom = half4(bloomPoint, bloomDirectional);
     
-    bloom = lerp(bloom, 0, isSky(input.uv));
+    bloom = lerp(bloom, 0, isSky);
     
     CompositingOutput output;
     output._CompositingColor = half4(color,1);
@@ -195,7 +188,11 @@ half4 FinalCompositingFragment(Varyings input) : SV_Target
     // Saturation
     color = Saturation(color, saturation);
 
-    color = lerp(color, baseColor, isSky(input.uv));
+    half3 skyColor = UNITY_SAMPLE_TEX2D_LOD(_SkyTexture,warpUV,0).rgb;
+    
+    int isSky = step(0.001,skyColor);
+    
+    color = lerp(color, skyColor, isSky);
     
     return half4(color,1);
     

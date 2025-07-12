@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using EditorOutline;
+﻿using EditorOutline;
 using UnityEngine;
 using UnityEngine.Rendering;
 
