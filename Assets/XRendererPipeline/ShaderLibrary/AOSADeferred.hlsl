@@ -73,11 +73,11 @@ GBufferOutput EncodeAOSAInputToGBuffer(AOSAShadeInput aosaInput)
     #if GBUFFER_ACCURATE_NORMAL
     g1.xy = PackNormalAccurate(aosaInput.normal);
     g2.a = aosaInput.breakup;
-    g3.a = aosaInput.saturation;
+    g3.a = saturate(aosaInput.saturation * 0.5);
     #else
     g1.xyz = PackNormal(aosaInput.normal);
     g1.a = aosaInput.breakup;
-    g2.a = aosaInput.saturation;
+    g2.a = saturate(aosaInput.saturation * 0.5);
     #endif
     g2.rgb = aosaInput.shadowedColor;
     g3.rgb = aosaInput.overlay;
@@ -94,11 +94,11 @@ void DecodeGBuffer(inout AOSAShadeInput input, half4 gBuffer0, half4 gBuffer1, h
     #if GBUFFER_ACCURATE_NORMAL
     input.normal = UnpackNormalAccurate(gBuffer1.xy);
     input.breakup = gBuffer2.a;
-    input.saturation = gBuffer3.a;
+    input.saturation = gBuffer3.a * 2.0;
     #else
     input.normal = UnpackNormal(gBuffer1.xyz);
     input.breakup = gBuffer1.a;
-    input.saturation = gBuffer2.a;
+    input.saturation = gBuffer2.a * 2.0;
     #endif
     input.shadowedColor = gBuffer2.rgb;
     input.overlay = gBuffer3.rgb;

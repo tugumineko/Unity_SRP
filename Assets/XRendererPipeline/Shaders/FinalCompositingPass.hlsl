@@ -178,7 +178,7 @@ half4 FinalCompositingFragment(Varyings input) : SV_Target
     
     half4 g3 = _GBuffer3.SampleLevel(sampler_point_clamp,input.uv,0);
     half3 overlay = g3.rgb;
-    half saturation = g3.a;
+    half saturation = g3.a * 2.0;
     
     // Overlay
     float skipOverlay = step(half3(0.5, 0.5, 0.5),overlay);

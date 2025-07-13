@@ -9,7 +9,7 @@ Shader "SRPLearn/AOSA"
         _BaseShadowedColor("Shadowed Color", Color) = (0.0,0.0,0.0,1.0)
         _BreakupMap("Breakup map",2D) = "black" {}
         _BaseColorOverlay("Color overlay", Color) = (0.5,0.5,0.5,1.0)
-        _BaseColorSaturation("Saturation", Float) = 1.0
+        _BaseColorSaturation("Saturation", Range(0,2)) = 1.0
         _Smoothness("Smoothness",Range(0,1)) = 0.5
         
         [Header(Edge breakup)]

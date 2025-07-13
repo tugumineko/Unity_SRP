@@ -17,7 +17,7 @@ public class PerObjectMaterialProperties : MonoBehaviour
     
     [SerializeField]private Color overlay = Color.gray;
     
-    [SerializeField]private float saturation = 1.0f;
+    [SerializeField][Range(0,2)]private float saturation = 1.0f;
     
     private void Awake()
     {
